@@ -1,0 +1,29 @@
+# Maven
+target/
+.mvn/wrapper/maven-wrapper.jar.lck
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.settings/
+.classpath
+.project
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Upstream BRICS clone — fetched only to vendor sources; not part of our repo.
+.upstream/
+
+# PIT historical history file (per-machine cache)
+pitHistory.txt
+
+# Coverage / mutation HTML reports are generated artifacts; CI uploads them.
+# Keep them out of git.
+target/site/jacoco/
+target/pit-reports/
+
+# Logs
+*.log

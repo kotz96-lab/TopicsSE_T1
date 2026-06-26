@@ -1,0 +1,13 @@
+* text=auto
+
+# Shell scripts must keep LF line endings even on Windows checkouts,
+# otherwise the GitHub Actions runner (Linux) cannot exec them.
+mvnw           text eol=lf
+mvnw.cmd       text eol=crlf
+*.sh           text eol=lf
+*.ps1          text eol=lf
+
+# Binary
+*.jar          binary
+*.png          binary
+*.zip          binary

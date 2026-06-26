@@ -1,0 +1,18 @@
+# PICT input-space model — BRICS regex / automaton construction.
+# Parameter choices justified in docs/pict-rationale.md (Week 2 deliverable).
+# Generate combinations with:
+#   pict pict/models/regex.pict /o:2 > pict/generated/regex-2wise.txt
+#   pict pict/models/regex.pict /o:3 > pict/generated/regex-3wise.txt
+#   pict pict/models/regex.pict /o:4 > pict/generated/regex-4wise.txt
+
+Alphabet:        ascii_lower, ascii_alnum, unicode_bmp, single_char
+Quantifier:      none, star, plus, optional, bounded
+AlternationDepth: 0, 1, 2
+NestingDepth:    0, 1, 2, 3
+RegexLength:     short, medium, long
+Operation:       toAutomaton, determinize, minimize, complement, union, intersection
+InputLength:     empty, short, medium, long
+
+# Constraints (refine in Week 2 once we see what PICT generates):
+# - bounded quantifiers don't combine with single_char alphabets in a useful way
+IF [Alphabet] = "single_char" THEN [Quantifier] IN {"none", "optional"};
