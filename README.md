@@ -4,6 +4,9 @@ Empirical evaluation of [dk.brics.automaton][upstream] for the *Topics in
 Software Engineering* course, Assignment 1. This repo is the shared
 working tree for **Partner A** and **Partner B**.
 
+- Assignment brief: [`docs/assignment.pdf`](docs/assignment.pdf)
+- **Current status, milestone tracker, and next steps: [`docs/STATUS.md`](docs/STATUS.md)** ← start here
+
 [upstream]: https://github.com/cs-au-dk/dk.brics.automaton
 
 ## Quick start
