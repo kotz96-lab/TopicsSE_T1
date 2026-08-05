@@ -34,9 +34,9 @@ is documented there.
 |------|-------|------------------------------------------------------------------------------|--------|
 | 1    | A     | repo + build + CI + skeleton + baseline coverage + initial PICT model        | **done** |
 | 1    | B     | initial metamorphic property list (text), initial SOLID sketch               | pending |
-| 2    | A     | first full JUnit5 suite; PICT 2/3-wise tables; PIT baseline                  | not started |
-| 2    | B     | first 5 metamorphic properties implemented under `metamorphic/`              | not started |
-| 3    | A     | 4-wise comparison, mutation-score deltas, infra tests                        | not started |
+| 2    | A     | JUnit5 suite (180 tests, 84% line cov); PICT 2/3/4-wise + tests; PIT baseline | **done** — see [`week2-baseline.md`](week2-baseline.md) |
+| 2    | B     | first 5 metamorphic properties implemented under `metamorphic/`              | **Person A drafted 15 properties** — see [`refactoring-proposals.md`](refactoring-proposals.md) and [`../src/test/java/se/topics/t1/metamorphic/MetamorphicPropertiesTest.java`](../src/test/java/se/topics/t1/metamorphic/MetamorphicPropertiesTest.java). B to review/extend. |
+| 3    | A     | per-strength PIT comparison; §8 5-mutant analysis; infra tests               | not started |
 | 3    | B     | full metamorphic suite, differential testing, draft refactoring proposals    | not started |
 | 4    | both  | website, video, cleanup, final analysis                                      | not started |
 
@@ -176,22 +176,53 @@ pwsh scripts/generate-pict.ps1
 
 ## What's next
 
-### Person A — Week 2
+### Person A — Week 2 (**done**)
 
-1. Grow [`junitsuite/`](../src/test/java/se/topics/t1/junitsuite/) into
-   a real test suite covering the BRICS public API. Target ≥80% line
-   coverage on `dk.brics.automaton.*`.
-2. Refine [`pict/models/regex.pict`](../pict/models/regex.pict) — write
-   the parameter-selection rationale into `docs/pict-rationale.md`, add
-   the constraints we care about, and generate 2-wise and 3-wise tables.
-3. Write PICT-driven parameterized tests under
-   [`pict/`](../src/test/java/se/topics/t1/pict/) that consume the
-   generated tables via `@ParameterizedTest(name = ...)` +
-   `@CsvFileSource`.
-4. First PIT baseline: `./mvnw -Ppit test`, capture the JaCoCo + PIT
-   scores in `docs/week2-baseline.md`.
+1. ~~Grow `junitsuite/` — target ≥80% line coverage.~~ Landed at 84.2%
+   line / 70.8% branch / 82% method. 180 hand tests across 10 files.
+2. ~~Refine `pict/models/regex.pict` + rationale doc + generate 2/3-wise
+   tables.~~ Model has 7 params + 4 constraints. Rationale in
+   [`pict-rationale.md`](pict-rationale.md). Tables generated at 2/3/4-wise
+   (34/152/568 rows) under `pict/generated/`.
+3. ~~PICT-driven parameterized tests via `@CsvFileSource`.~~
+   Implemented as `PictRegexTest` + `RegexRowBuilder`. 754 tests.
+4. ~~First PIT baseline.~~ Full numbers in [`week2-baseline.md`](week2-baseline.md).
+   **Headline: mutation score 51% — PICT tests didn't move it vs the
+   hand-test-only baseline (52%).** Written up as a legitimate research
+   finding for §9.4 in [`../stuff_for_report.md`](../stuff_for_report.md).
 
-### Person B — Week 2
+### Person A — Week 3
+
+1. §8 analysis of 5 surviving mutants — draft candidates already picked
+   in [`../MUTANTS_TO_ANALYZE.md`](../MUTANTS_TO_ANALYZE.md); needs the
+   discussion write-up (~30 min).
+2. Per-interaction-strength PIT run: separate `-Ppit test` filtered by
+   `@Tag` on `PictRegexTest` for 2/3/4-wise individually, to produce
+   the strength-vs-mutation-score comparison table §9.4 asks for.
+   (~40 min PIT time.)
+3. Infrastructure validation tests under `se.topics.t1.infra` (§13).
+
+### Person B — Week 2 (drafts landed from Person A — review & extend)
+
+Person A got ahead of schedule and drafted the two lowest-friction
+Partner-B deliverables. B should review and either accept, extend, or
+rewrite from scratch — the intent is *unblock*, not *replace*:
+
+- **§10 metamorphic tests** — 15 properties in
+  [`../src/test/java/se/topics/t1/metamorphic/MetamorphicPropertiesTest.java`](../src/test/java/se/topics/t1/metamorphic/MetamorphicPropertiesTest.java).
+  Assignment requires ≥10. Covers union / intersection / complement
+  / concatenation / minimize / determinize identities. All passing on
+  the vendored BRICS commit. Room to grow: extend into a
+  parameterized version driven by PICT rows (which would give the
+  PICT tests a stronger oracle and likely move the mutation score
+  above 51%).
+- **§12.4 refactoring proposals** — three formal proposals in
+  [`refactoring-proposals.md`](refactoring-proposals.md). Assignment
+  requires ≥3. All were surfaced organically while writing tests
+  (not synthetic) — bug in `Datatypes.exists`, API-clarity issue in
+  `isTotal`, null-return convention in `getFiniteStrings`.
+
+### Person B — Week 2 (still open)
 
 1. Sketch ≥5 metamorphic properties as JUnit 5 tests under
    [`metamorphic/`](../src/test/java/se/topics/t1/metamorphic/). Use
