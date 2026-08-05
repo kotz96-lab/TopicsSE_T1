@@ -1,18 +1,67 @@
 # PICT input-space model — BRICS regex / automaton construction.
-# Parameter choices justified in docs/pict-rationale.md (Week 2 deliverable).
+# Parameter-choice rationale is in docs/pict-rationale.md (§9.2 / §9.4).
+#
 # Generate combinations with:
-#   pict pict/models/regex.pict /o:2 > pict/generated/regex-2wise.txt
-#   pict pict/models/regex.pict /o:3 > pict/generated/regex-3wise.txt
-#   pict pict/models/regex.pict /o:4 > pict/generated/regex-4wise.txt
+#   pwsh scripts/generate-pict.ps1
+# (produces regex-2wise.csv, regex-3wise.csv, regex-4wise.csv under pict/generated/)
+#
+# Consumed by src/test/java/se/topics/t1/pict/PictRegexTest.java
+# via @ParameterizedTest + @CsvFileSource.
 
+# --- Parameters ------------------------------------------------------
+
+# Char pool used to build the regex.
+#   ascii_lower  = [a-z]         — dense small-alphabet, exercises range compression
+#   ascii_alnum  = [a-zA-Z0-9]   — larger char class, hits multi-range paths
+#   unicode_bmp  = Hebrew block  — non-ASCII, forces multi-byte code paths
+#   single_char  = the char 'x'  — degenerate case, hits singleton short-circuits
 Alphabet:        ascii_lower, ascii_alnum, unicode_bmp, single_char
-Quantifier:      none, star, plus, optional, bounded
-AlternationDepth: 0, 1, 2
-NestingDepth:    0, 1, 2, 3
-RegexLength:     short, medium, long
-Operation:       toAutomaton, determinize, minimize, complement, union, intersection
-InputLength:     empty, short, medium, long
 
-# Constraints (refine in Week 2 once we see what PICT generates):
-# - bounded quantifiers don't combine with single_char alphabets in a useful way
-IF [Alphabet] = "single_char" THEN [Quantifier] IN {"none", "optional"};
+# How the character class is written in the regex source.
+#   single    = one bare character                  →   a
+#   range     = a bracketed range                   →   [a-z]
+#   set       = a bracketed enumeration             →   [abc]
+#   negated   = a bracketed negated range           →   [^a-z]
+CharClassKind:   single, range, set, negated
+
+# Repetition operator wrapped around the character class.
+Quantifier:      none, star, plus, optional, bounded
+
+# Number of top-level alternation branches (0 = no |, 1 = A|B, 2 = A|B|C).
+AlternationDepth: 0, 1, 2
+
+# How many parenthesised groups the pattern nests to.
+NestingDepth:    0, 1, 2
+
+# What we do with the automaton after compiling the regex.
+Operation:       toAutomaton, determinize, minimize, complement, union, intersection
+
+# Length bucket for the test input string we run against the automaton.
+InputLength:     empty, short, medium
+
+# --- Constraints -----------------------------------------------------
+
+# A "single_char" alphabet has exactly one code point, so:
+#  - it cannot form a proper range or a negated range;
+#  - alternation is redundant (all branches would be the same char).
+IF [Alphabet] = "single_char" THEN [CharClassKind] IN {"single", "set"};
+IF [Alphabet] = "single_char" THEN [AlternationDepth] IN {0, 1};
+
+# "negated" needs a class with an explicit range → not with single_char.
+# (covered by the previous constraint too, kept for readability)
+IF [CharClassKind] = "negated" THEN [Alphabet] <> "single_char";
+
+# Non-zero nesting depth requires *something* to nest — a bare
+# quantifier="none" on depth>0 would produce vacuous groups like "(a)".
+# We keep that legal but constrain the pathological case where nesting
+# depth is high AND alternation depth is 0 AND quantifier is none —
+# that just produces "((a))" which adds nothing PICT hasn't already
+# hit at depth 0.
+IF [NestingDepth] = 2 AND [AlternationDepth] = 0 THEN [Quantifier] <> "none";
+
+# "complement" only makes sense on total automata over the full char
+# range; complementing a singleton "a" gives an infinite language.
+# That's still legal, but pairing complement with the smallest input
+# (empty) is uninteresting because complement(a) accepts "".
+# We don't forbid it, we just note it — the row exists, it just
+# passes trivially.

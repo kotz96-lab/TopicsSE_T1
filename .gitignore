@@ -27,3 +27,9 @@ target/pit-reports/
 
 # Logs
 *.log
+
+# Downloaded third-party binaries kept locally per-developer.
+# pict.exe lives here so scripts/generate-pict.ps1 can find it; the
+# generated CSVs under pict/generated/ are committed so tests don't
+# require PICT to be installed for anyone running mvnw verify.
+tools/
