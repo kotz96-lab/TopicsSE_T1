@@ -16,27 +16,27 @@ import dk.brics.automaton.RegExp;
  * traceable experiment. Alternative "random-seeded" builders were
  * considered and rejected as harder to debug; see docs/pict-rationale.md.
  */
-final class RegexRowBuilder {
+public final class RegexRowBuilder {
 
     private RegexRowBuilder() {}
 
     /** Character-pool identifier from the PICT model. */
-    enum Alphabet { ascii_lower, ascii_alnum, unicode_bmp, single_char }
+    public enum Alphabet { ascii_lower, ascii_alnum, unicode_bmp, single_char }
 
     /** How the character class is written in the regex source. */
-    enum CharClassKind { single, range, set, negated }
+    public enum CharClassKind { single, range, set, negated }
 
     /** Repetition operator applied to the atom. */
-    enum Quantifier { none, star, plus, optional, bounded }
+    public enum Quantifier { none, star, plus, optional, bounded }
 
     /** What we do with the automaton after compiling the regex. */
-    enum Operation { toAutomaton, determinize, minimize, complement, union, intersection }
+    public enum Operation { toAutomaton, determinize, minimize, complement, union, intersection }
 
     /** Length bucket for the test input. */
-    enum InputLength { empty, small_short, medium }  // "short" is a Java keyword — see fromString
+    public enum InputLength { empty, small_short, medium }  // "short" is a Java keyword — see fromString
 
     /** Immutable record of the row + the derived regex string. */
-    record Row(
+    public record Row(
             Alphabet alphabet,
             CharClassKind charClassKind,
             Quantifier quantifier,
@@ -133,7 +133,7 @@ final class RegexRowBuilder {
      * Build a test input for the given alphabet + length bucket. Content
      * is deterministic so failures are reproducible.
      */
-    static String buildInput(Alphabet alpha, InputLength len) {
+    public static String buildInput(Alphabet alpha, InputLength len) {
         char sample = switch (alpha) {
             case ascii_lower, single_char -> 'a';
             case ascii_alnum              -> 'A';
@@ -151,7 +151,7 @@ final class RegexRowBuilder {
     // 6. Public entry — assemble the full Row
     // ------------------------------------------------------------
 
-    static Row build(
+    public static Row build(
             String alphabet,
             String charClassKind,
             String quantifier,
@@ -197,12 +197,12 @@ final class RegexRowBuilder {
      * Neither is particularly deep, but both exercise the BasicOperations
      * code paths and keep failures easy to reproduce.
      */
-    static Automaton companion() {
+    public static Automaton companion() {
         return BasicAutomata.makeString("marker");
     }
 
     /** Apply the row's declared Operation to the automaton. */
-    static Automaton applyOperation(Automaton a, Operation op) {
+    public static Automaton applyOperation(Automaton a, Operation op) {
         switch (op) {
             case toAutomaton:
                 return a;
@@ -224,7 +224,7 @@ final class RegexRowBuilder {
     }
 
     /** Convenience: build a Row, compile it, apply the operation. */
-    static Automaton compile(Row row) {
+    public static Automaton compile(Row row) {
         Automaton a = new RegExp(row.regex()).toAutomaton();
         return applyOperation(a, row.operation());
     }

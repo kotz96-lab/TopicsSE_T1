@@ -2,6 +2,7 @@ package se.topics.t1.pict;
 
 import dk.brics.automaton.Automaton;
 import dk.brics.automaton.RegExp;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvFileSource;
 
@@ -42,6 +43,7 @@ class PictRegexTest {
     private static final String CSV_3WISE = "pict/generated/regex-3wise.csv";
     private static final String CSV_4WISE = "pict/generated/regex-4wise.csv";
 
+    @Tag("pict-2wise")
     @ParameterizedTest(name = "2-wise[{index}] {0}/{1}/{2}/{3}/{4}/{5}/{6}")
     @CsvFileSource(files = CSV_2WISE, numLinesToSkip = 1)
     void pairwise(
@@ -52,6 +54,7 @@ class PictRegexTest {
                 alternationDepth, nestingDepth, operation, inputLength);
     }
 
+    @Tag("pict-3wise")
     @ParameterizedTest(name = "3-wise[{index}] {0}/{1}/{2}/{3}/{4}/{5}/{6}")
     @CsvFileSource(files = CSV_3WISE, numLinesToSkip = 1)
     void threeWise(
@@ -62,6 +65,7 @@ class PictRegexTest {
                 alternationDepth, nestingDepth, operation, inputLength);
     }
 
+    @Tag("pict-4wise")
     @ParameterizedTest(name = "4-wise[{index}] {0}/{1}/{2}/{3}/{4}/{5}/{6}")
     @CsvFileSource(files = CSV_4WISE, numLinesToSkip = 1)
     void fourWise(
