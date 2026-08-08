@@ -291,3 +291,77 @@ from this file.
 - **Coordination note:** these files are marked at the top as
   Person A drafts pending Partner B review, and STATUS.md is updated
   accordingly. The intent is *unblock*, not *replace*.
+
+### 2026-08-08 — Week 3 batch: §8 / §9 / §11 / §12 / §13 / §16 / §21 (Person A)
+- **Tool:** Claude Code (Opus 4.7, 1M context) + PIT 1.17.0 for the
+  per-strength runs.
+- **Who:** A drafting; B to review the technical drafts marked as
+  such (§11 differential, §12 SOLID narrative).
+- **What we asked it to do:** knock out the entire remaining Claude-
+  Code-doable slice of the assignment in one session so the only
+  work remaining is human review + Week-4 website/video.
+- **What it produced:**
+  - [`docs/mutation-analysis.md`](mutation-analysis.md) — §8 5-mutant
+    analysis expanded from the pre-selected candidates.
+  - [`docs/pict-strength-comparison.md`](pict-strength-comparison.md)
+    — §9.4 per-strength (2/3/4-wise) comparison, driven by three
+    fresh PIT runs against `-Dgroups=pict-Nwise` filtered suites.
+  - [`docs/solid-analysis.md`](solid-analysis.md) — §12 SOLID
+    principle-by-principle narrative + design-pattern catalogue for
+    BRICS.
+  - [`docs/threats-to-validity.md`](threats-to-validity.md) — §21
+    threats + mitigations, 12 threats across internal / external /
+    construct validity classes.
+  - [`../src/test/java/se/topics/t1/differential/DifferentialTest.java`](../src/test/java/se/topics/t1/differential/DifferentialTest.java)
+    — §11 draft, ~40 test cases across the compatible subset +
+    documented known disagreements.
+  - [`../src/test/java/se/topics/t1/infra/RegexRowBuilderInfraTest.java`](../src/test/java/se/topics/t1/infra/RegexRowBuilderInfraTest.java)
+    — §13 infra tests for `RegexRowBuilder`, ~12 methods + 186
+    parameterized invocations against the committed CSVs.
+  - README §16 artifact checklist appended.
+  - Added `@Tag("pict-Nwise")` to `PictRegexTest` so PIT can filter
+    per strength.
+  - Made `RegexRowBuilder` public (was package-private) so it's
+    reachable from the `infra` package for §13 tests.
+- **Per-strength PIT numbers** (the direct answer to RQ2):
+  | Strength | PICT rows | Killed | Mutation score | Test strength |
+  |----------|-----------|--------|-----------------|---------------|
+  | 2-wise   |  34       | 1058   | 50.7%           | 68.1%         |
+  | 3-wise   | 152       | 1060   | 50.8%           | 68.2%         |
+  | 4-wise   | 568       | 1024   | 50.4%           | 67.9%         |
+  | Hand only| 180       | 1075   | 51.5%           | 70.0%         |
+  | Full     | 934       | 1074   | 51.4%           | 70.0%         |
+- **How we validated it:** `./mvnw clean verify` — **1191 tests pass**
+  (180 hand + 754 PICT + 16 metamorphic + ~40 differential + ~200
+  infra + 1 smoke). Coverage 77.2% line / 70.6% branch / 78.8%
+  method. Down from ~84% earlier — see note below.
+- **Coverage change note:** the line-coverage % dropped from 84.2%
+  (reported end of Week 2) to 77.2% (end of Week 3). Root cause is
+  a JaCoCo instrumentation quirk on `Datatypes` static-initializer
+  lines — the same class is measured as 441/517 in some runs and
+  13/252 in others. The actual code being executed hasn't changed.
+  We're taking 77.2% as the reproducible number since it survives a
+  full `clean verify` cycle.
+- **Mistakes / corrections:**
+  1. First differential-test attempt had `[a-z]+@[a-z]+` in the
+     "compatible subset" cases — but BRICS treats `@` as ANYSTRING
+     metacharacter, not a literal. The failing test blocked PIT
+     entirely (PIT requires green tests). Fixed by using `X`
+     instead, moved the `@` clash to a "known disagreements"
+     nested class where it belongs. **Surfaced a real finding**
+     recorded in [`../stuff_for_report.md`](../stuff_for_report.md)
+     Finding #6.
+  2. First infra-test attempt couldn't compile: `RegexRowBuilder`
+     was package-private, unreachable from the `infra` package.
+     Made the class + its enums + public methods `public`. Design
+     justification: RegexRowBuilder is a legitimate testable
+     surface, not a hidden helper.
+  3. First 3-wise PIT run failed with "test failing without
+     mutation" (Differential test #38 disagreed) — surfaced fix
+     for issue #1 above.
+- **Additional finding logged for the website (§9.4 write-up):**
+  interaction-strength alone did not measurably move the mutation
+  score. All three strengths cluster around 50.7% ± 0.5%, hand-only
+  is 51.5%, full is 51.4%. This is the empirical answer to RQ2
+  and matches the theoretical prediction that CIT's value is
+  bounded by oracle strength.

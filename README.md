@@ -108,3 +108,43 @@ validity.
 | 3    | A     | 4-wise comparison, mutation-score deltas, infra tests                        |
 | 3    | B     | full metamorphic suite, differential testing, draft refactoring proposals   |
 | 4    | both  | website, video, cleanup, final analysis                                      |
+
+For the current state see [`docs/STATUS.md`](docs/STATUS.md); for the
+remaining work see [`ROADMAP.md`](ROADMAP.md).
+
+## Reproducibility artifact checklist (§16)
+
+The final artifact must contain every item below. Each links to
+either the file or the command that produces it.
+
+| §16 item                        | Where in this repo                                                    | How to regenerate                                                |
+|---------------------------------|-----------------------------------------------------------------------|------------------------------------------------------------------|
+| Source code (vendored BRICS)    | [`src/main/java/dk/brics/automaton/`](src/main/java/dk/brics/automaton/) | pinned by hash in [`BRICS_COMMIT`](BRICS_COMMIT)                 |
+| Generated JUnit tests           | [`src/test/java/se/topics/t1/junitsuite/`](src/test/java/se/topics/t1/junitsuite/) | `./mvnw verify` (also runs them)                                 |
+| Metamorphic tests               | [`src/test/java/se/topics/t1/metamorphic/`](src/test/java/se/topics/t1/metamorphic/) | `./mvnw verify`                                                  |
+| PICT models                     | [`pict/models/regex.pict`](pict/models/regex.pict)                    | authored by hand                                                 |
+| Generated 2/3/4-wise combinations | [`pict/generated/regex-{2,3,4}wise.csv`](pict/generated/)             | `pwsh scripts/generate-pict.ps1` (needs `tools/pict.exe`)        |
+| Generated combinatorial tests   | [`src/test/java/se/topics/t1/pict/`](src/test/java/se/topics/t1/pict/) | `./mvnw verify`                                                  |
+| PIT mutation reports            | `target/pit-reports/index.html`                                       | `./mvnw -Ppit test`                                              |
+| Coverage reports (JaCoCo)       | `target/site/jacoco/index.html`                                       | `./mvnw verify`                                                  |
+| Software-design analysis        | [`docs/refactoring-proposals.md`](docs/refactoring-proposals.md), [`stuff_for_report.md`](stuff_for_report.md) | authored — see also [`docs/mutation-analysis.md`](docs/mutation-analysis.md) |
+| SOLID evaluation notes          | *(Partner B — pending)*                                               | authored                                                         |
+| Refactoring proposals (≥3)      | [`docs/refactoring-proposals.md`](docs/refactoring-proposals.md)      | authored                                                         |
+| Scripts                         | [`scripts/`](scripts/)                                                | committed                                                        |
+| Website                         | *(Partner B — pending, Week 4)*                                       | authored                                                         |
+| README                          | *this file*                                                           | committed                                                        |
+| Threats to validity             | [`docs/threats-to-validity.md`](docs/threats-to-validity.md)          | authored                                                         |
+| AI-tool usage log (§21)         | [`docs/AI_TOOLS.md`](docs/AI_TOOLS.md)                                | appended every session                                           |
+| Frozen Week-2 measurements      | [`docs/week2-baseline.md`](docs/week2-baseline.md)                    | snapshot                                                         |
+| §8 mutant analysis (5 required) | [`docs/mutation-analysis.md`](docs/mutation-analysis.md), [`MUTANTS_TO_ANALYZE.md`](MUTANTS_TO_ANALYZE.md) | authored                                                         |
+| §9 PICT rationale               | [`docs/pict-rationale.md`](docs/pict-rationale.md)                    | authored                                                         |
+
+**One-command reproduction** of every number reported in this repo:
+
+```pwsh
+$env:JAVA_HOME = "C:\Program Files\Eclipse Adoptium\jdk-21.0.8.9-hotspot"
+./mvnw verify              # 950-test suite + JaCoCo (~10s)
+./mvnw -Ppit test          # PIT mutation report (~12 min)
+# CSVs under pict/generated/ are already committed; regenerate optionally:
+pwsh scripts/generate-pict.ps1
+```

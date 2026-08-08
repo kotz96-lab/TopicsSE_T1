@@ -191,3 +191,86 @@ return whatever fits under the limit. It returned `null` for a
 ---
 
 <!-- Add new findings below this line as we go. -->
+
+## Finding 5 — Interaction strength does not affect mutation score
+### Where it belongs
+Website §9.4 (Combinatorial Testing evaluation) — headline data for
+RQ2 comparison. Also §7 discussion of what different test techniques
+catch.
+
+### The one-liner
+Going from 2-wise (34 tests) to 3-wise (152 tests) to 4-wise (568
+tests) moved the mutation score by less than 1 percentage point;
+all three land at ~50.7% ± 0.5%.
+
+### The data (from three separate per-strength PIT runs)
+| Strength | PICT rows | Killed | Mutation score |
+|---|---|---|---|
+| 2-wise   |  34 | 1058 | 50.7% |
+| 3-wise   | 152 | 1060 | 50.8% |
+| 4-wise   | 568 | 1024 | 50.4% |
+| Hand only | 180 | 1075 | 51.5% |
+| Full     | 934 | 1074 | 51.4% |
+
+Full write-up in [`docs/pict-strength-comparison.md`](docs/pict-strength-comparison.md).
+
+### Why this is interesting
+Textbook CIT results claim interaction strength moves the needle.
+Ours doesn't. That's because our oracle is weak (smoke + double
+negation only). The row count grows ~4× per strength while
+detection stays flat — a clean, unambiguous demonstration of the
+"CIT rewards strong oracles" principle. It's a *better* research
+finding than "yes, CIT helps a bit" would be, because it isolates
+the interaction-strength variable from the oracle variable.
+
+---
+
+## Finding 6 — BRICS has 5 default regex metacharacters that Java doesn't
+### Where it belongs
+Website §11 (Differential testing) as a documented dialect divergence.
+Also §7 as a "gotcha we hit while writing tests."
+
+### The one-liner
+`RegExp` in BRICS reserves `@`, `#`, `~`, `&`, `<...>` as
+metacharacters by default. Java's `Pattern` treats all of them as
+literals. Any regex containing them behaves differently between the
+two engines.
+
+### The five characters and their BRICS meanings
+| Char | BRICS meaning | Java meaning |
+|---|---|---|
+| `@` | ANYSTRING (Σ*, matches everything) | literal `@` |
+| `#` | EMPTY language (matches nothing) | literal `#` |
+| `~` | complement of the following expression | literal `~` |
+| `&` | intersection of two expressions | literal `&` |
+| `<name>` | reference to a named automaton | literal `<`, `>`, `name` |
+
+### How we found it
+While writing the differential test in
+[`src/test/java/se/topics/t1/differential/DifferentialTest.java`](src/test/java/se/topics/t1/differential/DifferentialTest.java),
+one of the "compatible-subset" cases (`[a-z]+@[a-z]+` vs input `abc`)
+failed the "PIT requires all tests green" precondition. The failing
+test made the mismatch obvious: BRICS accepts `abc` because
+`[a-z]+@[a-z]+` = "letters, anything, letters" (with @ = ANYSTRING
+matching the empty middle), while Java requires a literal `@`.
+
+Cross-referenced with `RegExp.java` — these are behind syntax-flag
+constants `ANYSTRING`, `EMPTY`, `COMPLEMENT`, `INTERSECTION`,
+`AUTOMATON`. Passing `new RegExp(pattern, RegExp.NONE)` or
+`RegExp.ALL & ~RegExp.ANYSTRING` disables them individually.
+
+### Impact
+Anyone who ports a regex from Java to BRICS (or vice versa)
+without knowing about these will get a silently-different language
+— no crash, no warning, just wrong matching. The BRICS Javadoc
+mentions the flags but doesn't call out that the *default* enables
+all of them.
+
+### Rubric leverage
+- §11 (Differential testing) — direct headline finding.
+- §7 — evidence for "types of faults exposed by different testing
+  techniques" (this was found by differential + PIT, not by unit
+  tests).
+- §12 (API-clarity) — potential fourth refactoring proposal:
+  BRICS' default flag set should probably be conservative
+  (literal-first), letting users opt IN to the extensions.

@@ -16,17 +16,17 @@ effort estimate.
 |----|-------------|-----|-------|--------------|
 | **6**  | JUnit5 suite | 20 | ✅ | write-up paragraph for §7 & website |
 | **7**  | Suite evaluation | *(part of §6)* | ✅ | write-up in website |
-| **8**  | Mutation testing + 5-mutant analysis | 15 | 🟡 | ~30-min write-up using [`MUTANTS_TO_ANALYZE.md`](MUTANTS_TO_ANALYZE.md) as source |
-| **9**  | PICT + interaction-strength eval | 25 | 🟡 | **per-strength PIT comparison table** (2-wise vs 3-wise vs 4-wise, each alone). ~40 min PIT time + short write-up |
+| **8**  | Mutation testing + 5-mutant analysis | 15 | ✅ | full analysis in [`docs/mutation-analysis.md`](docs/mutation-analysis.md) |
+| **9**  | PICT + interaction-strength eval | 25 | ✅ | model + tests + per-strength comparison + rationale — see [`docs/pict-strength-comparison.md`](docs/pict-strength-comparison.md) |
 | **10** | Metamorphic tests (≥10) | 15 | 🟡 | 15 draft properties landed; **Partner B to review, extend, or restructure** |
-| **11** | Differential vs `java.util.regex` | 5 | ⬜ | not started — B territory, ~1–2 hrs |
-| **12** | SOLID + refactoring proposals | 10 | 🟡 | 3 refactoring proposals drafted; **SOLID-per-principle narrative still needed** (B) |
-| **13** | Infrastructure validation | 3 | ⬜ | not started — A Week 3, ~30 min |
+| **11** | Differential vs `java.util.regex` | 5 | 🟡 | draft landed with 38 compatible cases + known-disagreements; **Partner B to review, extend** |
+| **12** | SOLID + refactoring proposals | 10 | 🟡 | 3 refactoring proposals drafted + full SOLID-per-principle narrative in [`docs/solid-analysis.md`](docs/solid-analysis.md); **Partner B to review** |
+| **13** | Infrastructure validation | 3 | ✅ | [`RegexRowBuilderInfraTest`](src/test/java/se/topics/t1/infra/RegexRowBuilderInfraTest.java) with 12 methods + 186 parameterized invocations |
 | **14** | Automation | *(integrated)* | ✅ | mvnw verify + `-Ppit` + generate-pict scripted |
 | **15** | HTML website | 5 | ⬜ | Week 4 wrap-up. Content exists in docs; assembly + styling ~4–6 hrs |
-| **16** | Reproducibility artifact | 5 | 🟡 | CSVs committed, seed pinned; README needs final artifact-checklist per §16 |
+| **16** | Reproducibility artifact | 5 | ✅ | CSVs committed + seed pinned + README artifact-checklist appended |
 | **17** | Video (5–10 min) | 5 | ⬜ | Week 4. B narrates. Needs slides + screenshots + voiceover, ~3–4 hrs |
-| **21** | Threats to validity + AI-tools writeup | 2 | 🟡 | AI_TOOLS.md complete; threats-to-validity paragraph missing, ~15 min |
+| **21** | Threats to validity + AI-tools writeup | 2 | ✅ | AI_TOOLS.md complete; [`docs/threats-to-validity.md`](docs/threats-to-validity.md) written |
 
 ---
 
@@ -41,38 +41,52 @@ effort estimate.
 | 3 | Threats-to-validity paragraph | §21 | 2 | ~15 min | Straightforward write-up. |
 | 4 | Infra tests | §13 | 3 | ~30 min | ~5 tests for `RegexRowBuilder` + generate-pict.ps1 wrapper. |
 
-**Subtotal for A's Week 3:** ~2 hrs of work, closes out §8, §13, §21 and rounds out §9.
+**Update:** all four items above are now **done** — see the
+"What's actually left" section below.
 
-### Partner B's Week 3 (needs coordination)
+### Partner B's Week 3 (mostly review now)
 
-| Rank | Item | § | Points | Effort | Notes |
-|------|------|---|--------|--------|-------|
-| 5 | Review + extend metamorphic tests | §10 | 15 | 2–3 hrs | B decides: accept the 15 drafted properties, extend to 20+, or restructure. Could grow into a PICT-driven metamorphic test that would also boost §9's mutation score. |
-| 6 | Differential tests | §11 | 5 | 1–2 hrs | Build from scratch. Compatible-subset regex generator + `java.util.regex` comparison. |
-| 7 | SOLID narrative | §12 | 10 | 2–3 hrs | Refactoring proposals done; needs SOLID-per-principle discussion (SRP violations, OCP-friendliness, LSP behavior, ISP inheritance chains, DIP concrete deps in BRICS). |
+Person A drafted the technical scaffolding for §10, §11, §12 to
+unblock B. Each file is marked at the top as an A-draft pending B
+review — intent is unblock, not replace.
 
-**Subtotal for B's Week 3:** ~6–8 hrs.
+| Item | § | Points | Effort |
+|------|---|--------|--------|
+| Review metamorphic tests + extend if desired | §10 | 15 | 1–2 hrs |
+| Review differential tests + add cases if desired | §11 | 5 | 1 hr |
+| Review SOLID narrative + edit voice/angle | §12 | 10 | 1–2 hrs |
+| Get onboarded to the repo | — | — | 30 min |
+
+**Subtotal for B's Week 3:** ~3–5 hrs (down from ~6–8 hrs before A
+drafted the scaffolding).
 
 ### Wrap-up phase — Week 4
 
-| Rank | Item | § | Points | Effort | Notes |
-|------|------|---|--------|--------|-------|
-| 8 | HTML website | §15 | 5 | 4–6 hrs | All content exists in `docs/`. HTML/CSS assembly + navigation. |
-| 9 | Video | §17 | 5 | 3–4 hrs | B narrates per SPLIT.md. Slides + screenshots + voiceover. |
-| 10 | README artifact checklist | §16 | 5 | 30 min | Confirms every item required by §16 (source, tests, PICT models, reports, docs, README) has a link and reproduction command. |
+| Item | § | Points | Effort |
+|------|---|--------|--------|
+| HTML website | §15 | 5 | 4–6 hrs |
+| Video (voiceover + slides) | §17 | 5 | 3–4 hrs |
 
-**Subtotal for Week 4:** ~8–10 hrs combined.
+**Subtotal for Week 4:** ~7–10 hrs combined.
 
 ---
 
 ## Total remaining hours
 
-- **Person A:** ~2 hrs (Week 3) + ~1 hr helping with website/README (Week 4).
-- **Person B:** ~6–8 hrs (Week 3) + ~7–10 hrs Week-4 wrap-up (website + video primarily).
-- **Combined:** ~15–20 hrs to finish across two people over two weeks.
+- **Person A:** ~1 hr helping with website/README (Week 4).
+- **Person B:** ~3–5 hrs (Week 3 reviews) + ~7–10 hrs Week 4 (website + video).
+- **Combined:** ~11–16 hrs to finish across two people over ~two weeks.
 
 Nothing on Person A's plate is blocked. Person B's items are all
 independent and can start as soon as they're onboarded.
+
+## What's actually left (short list)
+
+1. **Get Partner B onboarded** — the schedule risk, not a code risk.
+2. **B reviews:** metamorphic properties, differential tests, SOLID + refactoring proposals.
+3. **Week 4:** HTML website and video.
+
+Everything else (§6, §7, §8, §9, §13, §14, §16, §21) is done end-to-end.
 
 ---
 
@@ -85,21 +99,26 @@ about 2 weeks of parallel work finishes everything.
 
 ---
 
-## Numbers we already have (from Week 2 baseline)
+## Numbers we already have (after Week-3 additions)
 
-- 950 tests, all passing on vendored BRICS commit `582d8f3`.
-- **84.2%** line coverage / **70.8%** branch / **82%** method on
+- **1191 tests**, all passing on vendored BRICS commit `582d8f3`.
+- **77.2%** line coverage / **70.6%** branch / **78.8%** method on
   `dk.brics.automaton.*` (JaCoCo).
-- **51%** mutation score with the full suite (was 52% with the
-  180-test hand-written suite alone — the 754 PICT tests did not
-  measurably move the score with a weak oracle, which is itself the
-  empirical answer to RQ2).
+- **51%** mutation score with the full suite. **Confirmed: 2-wise
+  alone (34 tests) hits 50.7%; 3-wise (152 tests) 50.8%; 4-wise
+  (568 tests) 50.4% — flat curve across interaction strengths, which
+  is the empirical answer to RQ2** (see [`docs/pict-strength-comparison.md`](docs/pict-strength-comparison.md)).
 - PICT tables at 2/3/4-wise: **34 / 152 / 568** rows (99.7% / 98.8% /
   95.6% smaller than the full 12,960-combination cross-product).
-- 3 refactoring proposals in [`docs/refactoring-proposals.md`](docs/refactoring-proposals.md).
-- 5 pre-selected surviving mutants in [`MUTANTS_TO_ANALYZE.md`](MUTANTS_TO_ANALYZE.md).
-- 4 interesting findings in [`stuff_for_report.md`](stuff_for_report.md).
-- All 6 AI-tool sessions logged in [`docs/AI_TOOLS.md`](docs/AI_TOOLS.md).
+- **3 refactoring proposals** in [`docs/refactoring-proposals.md`](docs/refactoring-proposals.md).
+- **5 surviving-mutant analysis** in [`docs/mutation-analysis.md`](docs/mutation-analysis.md).
+- **SOLID narrative** in [`docs/solid-analysis.md`](docs/solid-analysis.md).
+- **Threats to validity** in [`docs/threats-to-validity.md`](docs/threats-to-validity.md).
+- **Differential tests vs `java.util.regex`** at [`src/test/java/se/topics/t1/differential/DifferentialTest.java`](src/test/java/se/topics/t1/differential/DifferentialTest.java).
+- **15 metamorphic properties** at [`src/test/java/se/topics/t1/metamorphic/MetamorphicPropertiesTest.java`](src/test/java/se/topics/t1/metamorphic/MetamorphicPropertiesTest.java).
+- **§13 infra tests** at [`src/test/java/se/topics/t1/infra/RegexRowBuilderInfraTest.java`](src/test/java/se/topics/t1/infra/RegexRowBuilderInfraTest.java).
+- **6 interesting findings** in [`stuff_for_report.md`](stuff_for_report.md) — including the new "BRICS reserves 5 default metacharacters Java doesn't" finding from writing the differential test.
+- All AI-tool sessions logged in [`docs/AI_TOOLS.md`](docs/AI_TOOLS.md).
 
 ---
 

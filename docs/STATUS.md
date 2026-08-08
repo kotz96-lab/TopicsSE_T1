@@ -36,8 +36,10 @@ is documented there.
 | 1    | B     | initial metamorphic property list (text), initial SOLID sketch               | pending |
 | 2    | A     | JUnit5 suite (180 tests, 84% line cov); PICT 2/3/4-wise + tests; PIT baseline | **done** — see [`week2-baseline.md`](week2-baseline.md) |
 | 2    | B     | first 5 metamorphic properties implemented under `metamorphic/`              | **Person A drafted 15 properties** — see [`refactoring-proposals.md`](refactoring-proposals.md) and [`../src/test/java/se/topics/t1/metamorphic/MetamorphicPropertiesTest.java`](../src/test/java/se/topics/t1/metamorphic/MetamorphicPropertiesTest.java). B to review/extend. |
-| 3    | A     | per-strength PIT comparison; §8 5-mutant analysis; infra tests               | not started |
-| 3    | B     | full metamorphic suite, differential testing, draft refactoring proposals    | not started |
+| 3    | A     | per-strength PIT comparison; §8 5-mutant analysis; infra tests               | **done** — see [`pict-strength-comparison.md`](pict-strength-comparison.md), [`mutation-analysis.md`](mutation-analysis.md), [`../src/test/java/se/topics/t1/infra/`](../src/test/java/se/topics/t1/infra/) |
+| 3    | A→B   | draft §11 differential + §12 SOLID narrative to unblock B                    | **A drafted, B to review** |
+| 3    | A     | threats-to-validity; README §16 artifact checklist                           | **done** — see [`threats-to-validity.md`](threats-to-validity.md), [`../README.md`](../README.md) |
+| 3    | B     | full metamorphic suite, differential testing, draft refactoring proposals    | drafts from A pending review |
 | 4    | both  | website, video, cleanup, final analysis                                      | not started |
 
 ---
