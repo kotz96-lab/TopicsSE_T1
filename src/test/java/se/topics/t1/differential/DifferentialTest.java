@@ -190,36 +190,54 @@ class DifferentialTest {
     }
 
     // ---------------------------------------------------------------
-    // BRICS-only extensions — should throw in Java but work in BRICS
+    // BRICS-only extensions — differential comparison shows the
+    // dialect divergence explicitly. Java parses these characters
+    // as literals; BRICS treats them as regex-algebra operators.
     // ---------------------------------------------------------------
 
     @Nested
-    @DisplayName("BRICS-only operators are rejected by java.util.regex")
+    @DisplayName("BRICS-only operators diverge from java.util.regex on the same source string")
     class BricsOnlyOperators {
 
         @Test
-        @DisplayName("Intersection operator '&' — BRICS supports, Java throws")
+        @DisplayName("Intersection operator '&': BRICS returns intersection language, Java treats as literals")
         void intersection() {
-            // BRICS: (a|b)&(b|c) = {b}
-            Automaton a = new RegExp("(a|b)&(b|c)").toAutomaton();
-            assertTrue(a.run("b"));
+            // BRICS parses "(a|b)&(b|c)" as the intersection {a,b} ∩ {b,c} = {b}.
+            assertTrue(runBrics("(a|b)&(b|c)", "b"));
+            assertEquals(false, runBrics("(a|b)&(b|c)", "a"));
+            assertEquals(false, runBrics("(a|b)&(b|c)", "c"));
 
-            // Java: '&' is a literal character but wrapped in this specific
-            // group structure, Java accepts it as a plain literal
-            // (interprets differently, doesn't throw). The dialects
-            // disagree on meaning, not on parse-ability.
-            //
-            // We don't assert Java throws; we assert BRICS' semantics
-            // are what we expect and note the mismatch.
+            // Java parses "(a|b)&(b|c)" as: capture group "(a|b)", then
+            // literal '&', then capture group "(b|c)" — i.e. matches
+            // the concrete 3-character strings "a&b", "a&c", "b&b", "b&c".
+            assertTrue(runJavaRegex("(a|b)&(b|c)", "a&b"));
+            assertTrue(runJavaRegex("(a|b)&(b|c)", "b&c"));
+            assertEquals(false, runJavaRegex("(a|b)&(b|c)", "b"));
+
+            // Direct differential: the same string is accepted by one and
+            // rejected by the other for BOTH interpretations.
+            assertEquals(false, runBrics("(a|b)&(b|c)", "a&b"));  // BRICS: no
+            assertTrue(runJavaRegex("(a|b)&(b|c)", "a&b"));       // Java:  yes
         }
 
         @Test
-        @DisplayName("Complement operator '~' — BRICS supports, meaning-differs in Java")
+        @DisplayName("Complement operator '~': BRICS returns complement language, Java rejects the ~ prefix")
         void complement() {
-            Automaton a = new RegExp("~(a)").toAutomaton();
-            assertEquals(false, a.run("a"));
-            assertTrue(a.run(""));
-            assertTrue(a.run("b"));
+            // BRICS: ~(a) = complement of {"a"} = everything except "a".
+            assertEquals(false, runBrics("~(a)", "a"));
+            assertTrue(runBrics("~(a)", ""));
+            assertTrue(runBrics("~(a)", "b"));
+            assertTrue(runBrics("~(a)", "aa"));
+
+            // Java: "~(a)" is a literal '~' followed by capture group "(a)".
+            // So Java matches only the 2-char string "~a" — and rejects "a".
+            assertTrue(runJavaRegex("~(a)", "~a"));
+            assertEquals(false, runJavaRegex("~(a)", "a"));
+            assertEquals(false, runJavaRegex("~(a)", ""));
+
+            // Direct differential: BRICS accepts "b", Java rejects it.
+            assertTrue(runBrics("~(a)", "b"));
+            assertEquals(false, runJavaRegex("~(a)", "b"));
         }
     }
 

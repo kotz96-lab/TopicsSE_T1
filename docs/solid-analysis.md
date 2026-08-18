@@ -28,11 +28,12 @@ weave the other topics in where they naturally attach.
 **Verdict: partially violated. Most impactful violation:
 `Automaton.java` is a god-class.**
 
-`Automaton.java` (~1150 lines) is simultaneously:
+`Automaton.java` (~1150 lines, **78 public methods** by a `grep`
+count) is simultaneously:
 
 1. **Data structure** — holds `initial`, `singleton`, `deterministic`
    fields; is a mutable graph of `State` and `Transition`.
-2. **Facade for every operation** — 60+ delegate methods like
+2. **Facade for every operation** — most of those 78 public methods are delegate methods like
    `union`, `intersection`, `complement`, `concatenate`, `repeat`,
    `optional`, `minimize`, `determinize`, `minus`, `subsetOf`,
    `isEmptyString`, `isTotal`, `getShortestExample`,
@@ -178,6 +179,15 @@ but it does mean every test in `SpecialOperationsTest` incidentally
 exercises `BasicAutomata` too. A DIP-friendly design with an
 `IAutomaton` abstraction would let us test each module in strict
 isolation.
+
+**Fair caveat.** BRICS is a self-contained library, not an
+application layer. In library code, taking concrete types in
+signatures is often justified: there's typically no substitution
+concern (no user is going to swap in an alternative `Automaton`),
+and interface indirection would add ceremony without benefit. So
+while BRICS is DIP-hostile in the strict OO-textbook sense, the
+verdict should be read as "opinionated, not obviously wrong" rather
+than a clear defect.
 
 ---
 

@@ -29,9 +29,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * BRICS' {@code subsetOf} determinizes internally and is a genuine
  * semantic check.
  *
- * <p>Assignment §10 requires ≥10 properties. We supply 15 across
- * union, intersection, complement, concatenation, minimize, and
- * determinize.
+ * <p>Assignment §10 requires ≥10 properties. We supply 18 across
+ * union, intersection, complement, concatenation, minimize,
+ * determinize, Kleene star, regex round-trip, and prefix-closure.
  */
 class MetamorphicPropertiesTest {
 
@@ -248,5 +248,77 @@ class MetamorphicPropertiesTest {
     @DisplayName("[MR-15b] A ∪ ∅ has the same language as A")
     void unionWithEmptyIsIdentity() {
         assertTrue(sameLanguage(aStar().get(), aStar().get().union(emptyLang().get())));
+    }
+
+    // ---------------------------------------------------------------
+    // Property 16 — Kleene star idempotence: L((A*)*) = L(A*)
+    // ---------------------------------------------------------------
+
+    @Test
+    @DisplayName("[MR-16] (A*)* has the same language as A*")
+    void kleeneStarIdempotent() {
+        // For any language X, applying the Kleene star twice yields the
+        // same language as applying it once — (X*)* = X*. This holds
+        // whether X is a Kleene-star language already or a plus-form.
+        //
+        // We test the identity with X = a* (already-star) and with
+        // X = (a|b)* (compound already-star), because the identity we
+        // want is (X*)* = X*, not something like (X+)* = X+ which is
+        // FALSE in general (plus doesn't accept empty, star does).
+        Automaton aStar        = aStar().get();
+        Automaton aStarStar    = aStar().get().repeat();
+        assertTrue(sameLanguage(aStar, aStarStar));
+
+        // Compound star form.
+        Automaton abStar       = new RegExp("(a|b)*").toAutomaton();
+        Automaton abStarStar   = new RegExp("(a|b)*").toAutomaton().repeat();
+        assertTrue(sameLanguage(abStar, abStarStar));
+    }
+
+    // ---------------------------------------------------------------
+    // Property 17 — Regex-language roundtrip through toString and back
+    //   The exact regex string is not preserved (BRICS reformats), but
+    //   the *language* recognised must be preserved. So:
+    //     RegExp(pattern).toString() → parses back into an equivalent
+    //     regex whose automaton has the same language.
+    // ---------------------------------------------------------------
+
+    @Test
+    @DisplayName("[MR-17] Parsing a regex, printing it, and reparsing yields the same language")
+    void regexRoundTrip() {
+        String[] patterns = { "a", "a|b", "(a|b)*c", "a{2,5}", "[a-z]+" };
+        for (String p : patterns) {
+            RegExp original    = new RegExp(p);
+            Automaton origAuto = original.toAutomaton();
+
+            String printed         = original.toString();
+            RegExp reparsed        = new RegExp(printed);
+            Automaton reparsedAuto = reparsed.toAutomaton();
+
+            assertTrue(sameLanguage(origAuto, reparsedAuto),
+                    "regex roundtrip broke for pattern: " + p
+                    + "  (printed as: " + printed + ")");
+        }
+    }
+
+    // ---------------------------------------------------------------
+    // Property 18 — Prefix-closure includes the empty string
+    //   For any non-empty language A, prefixClose(A) must accept the
+    //   empty string (which is a prefix of every string).
+    // ---------------------------------------------------------------
+
+    @Test
+    @DisplayName("[MR-18] prefixClose(A) accepts the empty string for any non-empty A")
+    void prefixCloseAcceptsEmpty() {
+        Automaton a = BasicAutomata.makeString("abc");
+        // Sanity: original doesn't accept the empty string.
+        assertTrue(!a.run(""));
+
+        Automaton pc = a.clone();
+        pc.prefixClose();
+        assertTrue(pc.run(""), "prefix-closure should accept '' — it's a prefix of every string in A");
+        assertTrue(pc.run("a"),  "prefix-closure should accept 'a'");
+        assertTrue(pc.run("ab"), "prefix-closure should accept 'ab'");
+        assertTrue(pc.run("abc"), "prefix-closure should accept 'abc'");
     }
 }

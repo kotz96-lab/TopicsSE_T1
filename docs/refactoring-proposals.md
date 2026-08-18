@@ -6,11 +6,13 @@ restructure this document. Each proposal follows the rubric-mandated
 format: **affected classes/methods**, **problem**, **proposed
 refactoring**, **expected benefits**, **risks/tradeoffs**.*
 
-The three proposals below were surfaced organically while writing the
-§6 JUnit5 test suite in Week 2 — they are not synthetic invention.
-Each represents observed friction between BRICS' documented contract
-and its actual behaviour. Two ((#1) and (#3)) are outright defects;
-(#2) is an API-clarity issue.
+The four proposals below were surfaced organically while writing the
+§6 JUnit5 test suite in Week 2 and the §11 differential test in
+Week 3 — they are not synthetic invention. Each represents observed
+friction between BRICS' documented contract and its actual behaviour.
+Two ((#1) and (#3)) are outright defects; (#2) is an API-clarity
+issue; (#4) is an API-default-value choice with real interoperability
+consequences.
 
 ---
 
@@ -239,14 +241,89 @@ public static Optional<Set<String>> getFiniteStrings(Automaton a, int limit) {
 
 ---
 
+---
+
+## Proposal 4 — Make BRICS' regex default flags conservative (literal-first)
+
+### Affected class/method
+[`dk.brics.automaton.RegExp`](../src/main/java/dk/brics/automaton/RegExp.java),
+constructor `public RegExp(String s)` (line 188) — which delegates
+to `RegExp(String s, int syntax_flags)` with `syntax_flags = ALL`.
+The `ALL` default enables five BRICS-only metacharacters:
+`INTERSECTION` (`&`), `COMPLEMENT` (`~`), `EMPTY` (`#`),
+`ANYSTRING` (`@`), `AUTOMATON` (`<name>`).
+
+### Problem
+By defaulting to `ALL`, BRICS silently gives five ordinary ASCII
+characters non-obvious meanings that no other mainstream regex
+engine reserves:
+
+| Char | BRICS meaning | Java/PCRE/POSIX meaning |
+|------|---------------|--------------------------|
+| `@`  | ANYSTRING (Σ*) — matches everything | literal `@` |
+| `#`  | EMPTY — matches nothing | literal `#` |
+| `~`  | complement of following expression | literal `~` |
+| `&`  | intersection of two expressions | literal `&` |
+| `<name>` | reference to a named automaton | literals |
+
+Anyone porting a regex between BRICS and Java/PCRE gets silently
+wrong matching. There is no crash, no warning, no error — just
+different accept/reject decisions on the same input.
+
+**Reproducer**: [`DifferentialTest.KnownDisagreements.atSymbolIsMetaInBrics`](../src/test/java/se/topics/t1/differential/DifferentialTest.java)
+demonstrates that `[a-z]+@[a-z]+` accepts `"abc"` in BRICS (because
+`@` = ANYSTRING can match empty) but not in Java (which requires a
+literal `@`).
+
+### Proposed refactoring
+Flip the default: `public RegExp(String s)` should delegate to
+`RegExp(String s, RegExp.NONE)` — i.e., all five metacharacters are
+literal by default. Users who want the extensions opt in explicitly:
+
+```java
+// Before: silent metacharacter interpretation
+new RegExp("[a-z]+@[a-z]+");
+
+// After (proposed): literal @ by default
+new RegExp("[a-z]+@[a-z]+");                 // matches "abc@def" only
+new RegExp("[a-z]+@[a-z]+", RegExp.ANYSTRING); // opt in to @ = Σ*
+```
+
+Alternative (softer): change the default to
+`RegExp.INTERSECTION | RegExp.COMPLEMENT` only — keep the two
+"regex algebra" operators (which are BRICS' unique value-add) but
+demote `@`, `#`, `<name>` to literals.
+
+### Expected benefits
+- Removes the biggest interoperability landmine BRICS ships with.
+- Reduces "surprise" bugs in code ported from Java regex.
+- Callers who want BRICS' extensions now do so explicitly — the
+  regex source contains no invisible semantics.
+- Matches the principle of least astonishment: if a character looks
+  literal, it should be literal by default.
+
+### Risks and tradeoffs
+- **Breaking change** for every existing BRICS user relying on the
+  default flags. This is the single most invasive refactoring
+  proposal here.
+- Users writing `new RegExp("a&b")` today expect intersection; after
+  the change they get a literal three-char string. Old code needs
+  a mechanical rewrite (`new RegExp("a&b", RegExp.ALL)`).
+- Could split the change over two releases: first a deprecation of
+  the current constructor, then flip the default in the next major.
+- No performance impact — pure semantic change at parse time.
+
+---
+
 ## Summary table
 
 | # | Location | Type | Effort | Risk | Rubric hook |
 |---|---|---|---|---|---|
-| 1 | `Datatypes.exists`         | Bug fix | Low | Low  | §8 (surviving-defect example), §12.4 |
-| 2 | `BasicOperations.isTotal`  | API-clarity refactor | Low–Med | Med | §12.1 SOLID → LSP violation flavour; §12.4 |
-| 3 | `SpecialOperations.getFiniteStrings` | API-hygiene refactor | Low | Med | §12.4 |
+| 1 | `Datatypes.exists`                    | Bug fix                        | Low     | Low     | §8 (surviving-defect example), §12.4 |
+| 2 | `BasicOperations.isTotal`             | Method-contract clarity        | Low–Med | Med     | §12.1 (contract clarity), §12.4     |
+| 3 | `SpecialOperations.getFiniteStrings`  | API-hygiene refactor           | Low     | Med     | §12.4                                |
+| 4 | `RegExp` default syntax flags         | API-default choice (interop)   | Low     | **High**| §11 (differential finding), §12.4    |
 
-All three surfaced from writing tests, not from a code review pass —
+All four surfaced from writing tests, not from a code review pass —
 which is a talking point in its own right for the §7 discussion of
 "types of faults exposed by different testing techniques."
