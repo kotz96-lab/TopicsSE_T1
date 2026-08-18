@@ -70,7 +70,7 @@ reproduce byte-identically.*
 
 ### Two comparable runs
 
-| Metric | 180 hand-tests only | 934 tests (hand + PICT) |
+| Metric | 180 hand-tests only | 934 tests (hand + PICT weak-oracle) |
 |---|---|---|
 | Total mutations | 2087 | 2087 |
 | Killed | 1075 | 1074 |
@@ -79,14 +79,25 @@ reproduce byte-identically.*
 | Uncovered mutations | 556 | 554 |
 | Wall time | ~60 s | ~740 s (~12 min) |
 
-**Headline finding:** the PICT-driven tests **did not measurably move
-the mutation score.** With our current oracles (smoke + double-negation
-invariant), extra combinations don't add detection power because the
-hand tests already cover the killable behaviours. This is the
-empirical answer to RQ2 ("Does CIT improve mutation scores?") — and
-it's a legitimate research finding, not a failure. See
-[../stuff_for_report.md](../stuff_for_report.md) Finding #1 for the
-narrative write-up.
+### Isolated per-strength × per-oracle grid (see pict-strength-comparison.md)
+
+Each cell below is the mutation-killing power of a single strength
++ oracle combination *in isolation* (PIT filtered via
+`-DincludedGroups=<tag>`, so only tests with that tag ran).
+
+| Oracle | 2-wise | 3-wise | 4-wise |
+|---|---|---|---|
+| **Weak** (smoke + double-neg on 1 input)     | 194 (9.6%)  | 205 (10.1%) | 204 (10.0%) |
+| **Strong** (5 metamorphic props on 5 inputs) | 209 (10.3%) | 229 (11.3%) | 231 (11.4%) |
+
+**Headline finding for RQ2:** CIT's value is bounded by oracle
+strength. With a weak oracle, increasing interaction strength gives
+essentially no gain (194 → 205 → 204). With a strong oracle,
+interaction strength materially helps up to 3-wise (209 → 229) and
+plateaus after (+2 to 4-wise). The gap between weak and strong
+oracles widens as interaction strength grows (+15 → +24 → +27
+kills), suggesting the two dimensions compound. Full analysis in
+[`pict-strength-comparison.md`](pict-strength-comparison.md).
 
 ### Per-class mutation score (highlights, both runs identical to ±1)
 

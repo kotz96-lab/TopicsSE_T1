@@ -365,3 +365,62 @@ from this file.
   is 51.5%, full is 51.4%. This is the empirical answer to RQ2
   and matches the theoretical prediction that CIT's value is
   bounded by oracle strength.
+- **⚠ CORRECTION added later:** the per-strength numbers above
+  (50.4-50.8%) were WRONG. See the "PIT filter bug" session below.
+
+### 2026-08-18 — Strong oracle experiment + PIT filter bug caught by human review
+- **Tool:** Claude Code (Opus 4.7, 1M context).
+- **Who:** A driving the session; user (reviewer) asked the
+  question that surfaced the bug.
+- **What we asked it to do:** Extend the §9.4 experiment with a
+  second oracle strength — a PICT-driven metamorphic test
+  ("strong oracle") that applies 5 metamorphic properties (double
+  complement, union idempotence, intersection idempotence,
+  minimize preserves, determinize preserves) on 5 sampled inputs
+  per PICT row. Compare against the original "weak oracle"
+  (smoke + double-negation on 1 input). Give a 3×2 grid of
+  interaction strength × oracle strength.
+- **What it produced (round 1, WRONG):**
+  - [`../src/test/java/se/topics/t1/pict/PictMetamorphicTest.java`](../src/test/java/se/topics/t1/pict/PictMetamorphicTest.java)
+    — 754 new PICT-driven metamorphic tests tagged
+    `pict-strong-{2,3,4}wise`.
+  - Six PIT runs with `-Dgroups=<tag>` filter reported nearly
+    identical mutation scores across all six combinations
+    (50.3-50.8%). Concluded "strong oracle doesn't help either."
+- **User (reviewer) push-back:** "check the oracle is actually
+  working and stronger." Prompted verification.
+- **What the verification revealed:**
+  - Parsing `target/pit-reports/mutations.xml` for the `killingTest`
+    field showed kills coming from EVERY test class in the suite
+    (`SpecialOperationsTest`, `BasicAutomataTest`, `PictRegexTest`,
+    `MetamorphicPropertiesTest`, ...), not just the tag-filtered
+    `PictMetamorphicTest`.
+  - Confirmed: PIT was running the ENTIRE 1945-test suite for each
+    "filtered" run. The `-Dgroups=<tag>` flag is a Surefire filter,
+    but PIT uses its own JUnit5 test runner and ignores Surefire's
+    include/exclude flags.
+  - Fix: use PIT's own `-DincludedGroups=<tag>` flag instead.
+- **What it produced (round 2, CORRECT):**
+  - Six re-runs with the working filter, parsed into the 3×2 grid.
+  - Numbers:
+    | Oracle | 2-wise | 3-wise | 4-wise |
+    |---|---|---|---|
+    | Weak   | 194 (9.6%)  | 205 (10.1%) | 204 (10.0%) |
+    | Strong | 209 (10.3%) | 229 (11.3%) | 231 (11.4%) |
+  - Real finding: weak oracle flat across strengths; strong oracle
+    rises 209 → 229 → 231 (diminishing returns after 3-wise);
+    strong-vs-weak gap widens as interaction strength grows
+    (+15 → +24 → +27). The two dimensions compound.
+  - Rewrote [`pict-strength-comparison.md`](pict-strength-comparison.md),
+    updated [`week2-baseline.md`](week2-baseline.md), and rewrote
+    Finding 1 in [`../stuff_for_report.md`](../stuff_for_report.md).
+    Added Finding 5 documenting the methodology bug itself.
+- **Lesson (worth quoting in the §21 threats section):**
+  the AI-written PIT invocation was self-consistent (all filtered
+  runs showed similar numbers, which felt like a "valid null result")
+  but scientifically meaningless. Only human review of a specific
+  concrete hypothesis ("is the strong oracle actually stronger?")
+  surfaced the flag bug. Automated correctness ≠ methodological
+  correctness. AI tooling still needs a human reviewer to check
+  that outputs answer the question the experiment was designed to
+  answer.

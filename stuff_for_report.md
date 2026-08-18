@@ -9,55 +9,61 @@
 
 ---
 
-## Finding 1 — CIT didn't move the mutation score with a weak oracle
+## Finding 1 — CIT + strong oracle helps; CIT alone does not
 ### Where it belongs
 Website §9.4 "Evaluation of Combinatorial Testing" and §7 discussion
-of test-suite readability/effectiveness tradeoffs. Also directly
-answers RQ2 ("Does CIT improve mutation scores?") from §3 of the brief.
+of test-suite readability/effectiveness tradeoffs. Directly answers
+RQ2 ("Does CIT improve mutation scores?") from §3 of the brief.
 
 ### The one-liner
-Adding 754 PICT-driven tests (2wise + 3wise + 4wise) on top of 180
-hand-written tests moved the mutation score from **52% to 51%** — no
-measurable improvement, and cost **+11 minutes of PIT wall time**.
+Interaction strength alone is nearly useless (194 → 205 → 204
+mutants killed at weak oracle); **oracle strength alone gives +15 to
++27 mutants**; **the two dimensions compound** — the strong-vs-weak
+gap widens as interaction strength grows.
 
-### The data
-| Metric | 180-test baseline | 934-test (with PICT) |
-|---|---|---|
-| Total mutations | 2087 | 2087 |
-| Killed | 1075 | 1074 |
-| Mutation score | 52% | 51% |
-| Test strength (killed / covered) | 70% | 70% |
-| PIT wall time | ~60s | ~740s |
+### The data (six isolated PIT runs, filtered via `-DincludedGroups=`)
+| Oracle | 2-wise | 3-wise | 4-wise |
+|---|---|---|---|
+| **Weak** (smoke + double-neg on 1 input)     | 194 (9.6%)  | 205 (10.1%) | 204 (10.0%) |
+| **Strong** (5 metamorphic props on 5 inputs) | 209 (10.3%) | 229 (11.3%) | 231 (11.4%) |
 
-### Why (root cause)
-The 180 hand tests use **example-based** assertions (`assertTrue(a.union(b).run("a"))`)
-— sharp per-mutant signal. Each assertion "fingerprints" a specific
-behaviour, so a mutant that flips it gets killed.
+Test strength (kills among covered mutants):
+| Oracle | 2-wise | 3-wise | 4-wise |
+|---|---|---|---|
+| Weak   | 40.8% | 42.5% | 42.1% |
+| Strong | 43.5% | 47.6% | 48.0% |
 
-The 754 PICT tests use only two oracles per row:
-1. **Smoke** — the pipeline doesn't throw.
-2. **Double-negation** — `A.complement().complement().run(input) == A.run(input)`.
+Full write-up in [`docs/pict-strength-comparison.md`](docs/pict-strength-comparison.md).
 
-Both are broad but shallow. Many mutants that would corrupt language
-membership still satisfy them. And extra test *invocations* against
-the same *assertions* don't add detection power — each mutant can only
-be killed once, and the hand tests already got most of them.
+### Why this is interesting
+Textbook CIT results claim interaction strength moves the needle.
+Our data says: **only if the oracle is strong enough to fire on the
+extra combinations.** With weak oracles, extra combinations exercise
+the same code paths in the same shallow way — each mutant can only be
+killed once, so more invocations of the same assertion don't help.
+With strong oracles (five metamorphic properties, five inputs each),
+the extra combinations give the strong assertions more chances to fire
+on distinct code paths.
 
-### Why this is actually an interesting finding
-The assignment's RQ2 asks whether CIT improves mutation scores. Papers
-often report "yes." **Our result: with a weak oracle, no.** This
-matches the CIT literature's caveat that combinatorial testing's value
-is bounded by oracle strength — combinations only find bugs if the
-oracle can *see* the bug when it fires. Worth stating explicitly in
-the write-up: CIT rewards strong per-row oracles (metamorphic
-properties, differential comparison against `java.util.regex`), not
-just more rows.
+**The compounding effect** — strong-vs-weak gap growing +15 → +24 → +27
+across interaction strengths — is the strongest single finding.
+Empirically confirms the "CIT rewards strong oracles" hypothesis with
+a clean 3×2 grid.
 
-### What would change the story
-Adding stronger per-row assertions — union commutativity, minimize
-preserves language, intersection subset relation — would likely move
-the score. Those live in Partner B's §10 territory though; combining
-PICT with metamorphic tests is exactly what §9.3 and §10 suggest.
+### Diminishing returns story
+Within the strong-oracle row, 2 → 3-wise gains **+20** mutants,
+3 → 4-wise gains only **+2**. So even the strong oracle plateaus
+past 3-wise. Practical recommendation: strong oracle at 3-wise is the
+sweet spot for this codebase.
+
+### A methodological note (also captured in AI_TOOLS.md)
+An earlier version of this experiment used `-Dgroups=` to filter PIT
+by tag — but that's a surefire-only flag; PIT silently runs every
+tagged AND untagged test. Consequence: every "per-strength" run was
+actually the full 1945-test suite, and the numbers we reported (all
+~50.5%) were full-suite scores with PIT run-to-run noise. Human
+review caught it by asking "check the oracle is actually stronger."
+Corrected data is what appears in this table.
 
 ---
 
@@ -192,36 +198,45 @@ return whatever fits under the limit. It returned `null` for a
 
 <!-- Add new findings below this line as we go. -->
 
-## Finding 5 — Interaction strength does not affect mutation score
+## Finding 5 — Methodology bug caught by human review: PIT ignores `-Dgroups=`
 ### Where it belongs
-Website §9.4 (Combinatorial Testing evaluation) — headline data for
-RQ2 comparison. Also §7 discussion of what different test techniques
-catch.
+Website §21 (Threats to Validity) and the AI-tools-and-corrections
+section. Also worth a mention in §9.4 as a caveat that future
+research on this codebase should heed.
 
 ### The one-liner
-Going from 2-wise (34 tests) to 3-wise (152 tests) to 4-wise (568
-tests) moved the mutation score by less than 1 percentage point;
-all three land at ~50.7% ± 0.5%.
+An earlier version of the per-strength PIT experiment used
+`-Dgroups=<tag>` to filter tests by JUnit5 `@Tag` — but that's a
+Surefire flag and PIT runs its own test engine. Consequence:
+every "per-strength" PIT run was actually running the entire
+1945-test suite, and the reported ~50% mutation scores were
+full-suite scores with PIT run-to-run noise, not per-strength
+scores.
 
-### The data (from three separate per-strength PIT runs)
-| Strength | PICT rows | Killed | Mutation score |
-|---|---|---|---|
-| 2-wise   |  34 | 1058 | 50.7% |
-| 3-wise   | 152 | 1060 | 50.8% |
-| 4-wise   | 568 | 1024 | 50.4% |
-| Hand only | 180 | 1075 | 51.5% |
-| Full     | 934 | 1074 | 51.4% |
+### How we caught it
+Human reviewer asked to verify the "strong oracle" was actually
+stronger than the weak one. Cross-checking the `killingTest`
+field in `target/pit-reports/mutations.xml` revealed kills from
+every test class in the suite — not only the tag-filtered one.
 
-Full write-up in [`docs/pict-strength-comparison.md`](docs/pict-strength-comparison.md).
+### The fix
+PIT's own filter flag is `-DincludedGroups=<tag>` (note the plural
+form). With that, PIT correctly restricts to only tagged tests,
+and per-strength numbers reflect the isolated contribution. See
+[`docs/pict-strength-comparison.md`](docs/pict-strength-comparison.md)
+for the corrected 3×2 grid.
 
-### Why this is interesting
-Textbook CIT results claim interaction strength moves the needle.
-Ours doesn't. That's because our oracle is weak (smoke + double
-negation only). The row count grows ~4× per strength while
-detection stays flat — a clean, unambiguous demonstration of the
-"CIT rewards strong oracles" principle. It's a *better* research
-finding than "yes, CIT helps a bit" would be, because it isolates
-the interaction-strength variable from the oracle variable.
+### Why this matters for the report
+Two things it teaches:
+1. Empirical software engineering is unforgiving when tool
+   defaults surprise you. A quiet difference between two
+   filter flags produced apparently-valid results that were
+   scientifically meaningless.
+2. This is a legitimate "AI-assisted testing" caution — the
+   original bug was AI-written PIT invocation, and the AI
+   didn't cross-check the flag semantics until asked. That
+   ties directly into §21's discussion of AI tool
+   limitations.
 
 ---
 
