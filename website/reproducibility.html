@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Reproducibility | BRICS Evaluation</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+    <div class="header-inner">
+        <a href="index.html" class="site-title">Evaluating BRICS &middot; TopicsSE T1</a>
+        <nav>
+            <a href="index.html">Overview</a>
+            <a href="junit.html">JUnit5</a>
+            <a href="cit.html">CIT</a>
+            <a href="metamorphic.html">Metamorphic</a>
+            <a href="differential.html">Differential</a>
+            <a href="design.html">Design</a>
+            <a href="threats.html">Threats</a>
+            <a href="reproducibility.html" class="active">Reproducibility</a>
+            <a href="ai-tools.html">AI Tools</a>
+        </nav>
+    </div>
+</header>
+
+<main>
+
+<h1>Reproducibility (&sect;16)</h1>
+
+<p class="small">
+    &sect;16 requires the final artifact to include all source, tests,
+    reports, models, analysis, scripts, and documentation such that
+    every number in this report can be regenerated deterministically.
+</p>
+
+<h2>Environment pinning</h2>
+
+<table>
+    <tr><th>Item</th><th>Version / value</th></tr>
+    <tr><td>BRICS commit</td>          <td><code>582d8f3</code> (pinned in <a href="https://github.com/kotz96-lab/TopicsSE_T1/blob/main/BRICS_COMMIT">BRICS_COMMIT</a>)</td></tr>
+    <tr><td>Java</td>                  <td>Temurin JDK 21.0.8.9</td></tr>
+    <tr><td>Maven</td>                 <td>Maven Wrapper (committed &mdash; no local install needed)</td></tr>
+    <tr><td>JUnit</td>                 <td>Jupiter 5.11.3</td></tr>
+    <tr><td>JaCoCo</td>                <td>0.8.12</td></tr>
+    <tr><td>PIT</td>                   <td>1.17.0 + pitest-junit5-plugin 1.2.1</td></tr>
+    <tr><td>PICT</td>                  <td>Microsoft PICT 3.7.4 &mdash; download from <a href="https://github.com/microsoft/pict/releases">releases</a></td></tr>
+    <tr><td>PICT seed</td>             <td><code>/r:1</code> (pinned in <code>scripts/generate-pict.ps1</code>)</td></tr>
+    <tr><td>OS (developed)</td>        <td>Windows 11</td></tr>
+    <tr><td>OS (CI)</td>               <td>Ubuntu latest via GitHub Actions</td></tr>
+</table>
+
+<h2>Artifact checklist</h2>
+
+<p>Every &sect;16-required artifact is in the repo. Table lists the
+location of each and how to regenerate.</p>
+
+<table>
+    <tr>
+        <th>&sect;16 item</th>
+        <th>Location in repo</th>
+        <th>Regenerate with</th>
+    </tr>
+    <tr><td>Source code (vendored BRICS)</td>       <td><code>src/main/java/dk/brics/automaton/</code></td>                         <td>pinned by <code>BRICS_COMMIT</code></td></tr>
+    <tr><td>Generated JUnit tests</td>              <td><code>src/test/java/se/topics/t1/junitsuite/</code></td>                    <td><code>./mvnw verify</code></td></tr>
+    <tr><td>Metamorphic tests</td>                  <td><code>src/test/java/se/topics/t1/metamorphic/</code></td>                   <td><code>./mvnw verify</code></td></tr>
+    <tr><td>Differential tests</td>                 <td><code>src/test/java/se/topics/t1/differential/</code></td>                  <td><code>./mvnw verify</code></td></tr>
+    <tr><td>Infra tests</td>                        <td><code>src/test/java/se/topics/t1/infra/</code></td>                         <td><code>./mvnw verify</code></td></tr>
+    <tr><td>PICT models</td>                        <td><code>pict/models/regex.pict</code></td>                                    <td>authored by hand</td></tr>
+    <tr><td>Generated 2/3/4-wise combinations</td>  <td><code>pict/generated/regex-{2,3,4}wise.csv</code></td>                     <td><code>pwsh scripts/generate-pict.ps1</code></td></tr>
+    <tr><td>Combinatorial JUnit tests</td>          <td><code>src/test/java/se/topics/t1/pict/</code></td>                          <td><code>./mvnw verify</code></td></tr>
+    <tr><td>PIT reports</td>                        <td><code>target/pit-reports/index.html</code></td>                             <td><code>./mvnw -Ppit test</code></td></tr>
+    <tr><td>Coverage reports</td>                   <td><code>target/site/jacoco/index.html</code></td>                             <td><code>./mvnw verify</code></td></tr>
+    <tr><td>Software-design analysis</td>           <td><code>docs/solid-analysis.md</code></td>                                    <td>authored</td></tr>
+    <tr><td>Refactoring proposals (&ge;3)</td>      <td><code>docs/refactoring-proposals.md</code> (4 proposals)</td>               <td>authored</td></tr>
+    <tr><td>5-mutant analysis</td>                  <td><code>docs/mutation-analysis.md</code></td>                                 <td>authored</td></tr>
+    <tr><td>PICT parameter rationale</td>           <td><code>docs/pict-rationale.md</code></td>                                    <td>authored</td></tr>
+    <tr><td>CIT strength comparison</td>            <td><code>docs/pict-strength-comparison.md</code></td>                          <td>authored</td></tr>
+    <tr><td>Threats to validity</td>                <td><code>docs/threats-to-validity.md</code></td>                               <td>authored</td></tr>
+    <tr><td>AI-tool usage log</td>                  <td><code>docs/AI_TOOLS.md</code></td>                                          <td>appended per session</td></tr>
+    <tr><td>README</td>                             <td><code>README.md</code></td>                                                 <td>committed</td></tr>
+    <tr><td>Website (this)</td>                     <td><code>website/</code></td>                                                  <td>static HTML in the repo</td></tr>
+    <tr><td>Scripts</td>                            <td><code>scripts/</code></td>                                                  <td>committed</td></tr>
+</table>
+
+<h2>One-command reproduction</h2>
+
+<pre><code># From a clean clone:
+git clone https://github.com/kotz96-lab/TopicsSE_T1
+cd TopicsSE_T1
+
+# Set JAVA_HOME (once per shell)
+$env:JAVA_HOME = "C:\Program Files\Eclipse Adoptium\jdk-21.0.8.9-hotspot"
+
+# 1. Compile + JUnit5 + JaCoCo (~10 seconds)
+./mvnw verify
+# outputs:
+#   target/site/jacoco/index.html         &larr; coverage report
+#   target/surefire-reports/              &larr; JUnit results
+
+# 2. PIT mutation coverage (~12 minutes with full 1948-test suite)
+./mvnw -Ppit test
+# outputs:
+#   target/pit-reports/index.html         &larr; mutation report
+
+# 3. Regenerate PICT tables (needs pict.exe locally under tools/ or on PATH; ~1 second)
+pwsh scripts/generate-pict.ps1
+# outputs:
+#   pict/generated/regex-{2,3,4}wise.csv  &larr; byte-identical thanks to /r:1
+</code></pre>
+
+<h2>Per-strength CIT reproduction (for &sect;9.4 numbers)</h2>
+
+<pre><code># Six PIT runs, one per interaction-strength &times; oracle combination:
+./mvnw -Ppit test -DincludedGroups=pict-2wise         # weak,   2-wise
+./mvnw -Ppit test -DincludedGroups=pict-3wise         # weak,   3-wise
+./mvnw -Ppit test -DincludedGroups=pict-4wise         # weak,   4-wise
+./mvnw -Ppit test -DincludedGroups=pict-strong-2wise  # strong, 2-wise
+./mvnw -Ppit test -DincludedGroups=pict-strong-3wise  # strong, 3-wise
+./mvnw -Ppit test -DincludedGroups=pict-strong-4wise  # strong, 4-wise</code></pre>
+
+<p class="small">
+    Note the flag: <code>-DincludedGroups=</code> (PIT's own filter),
+    NOT <code>-Dgroups=</code> (Surefire's, which PIT ignores). See the
+    <a href="ai-tools.html">AI Tools page</a> for why we know this the
+    hard way.
+</p>
+
+<h2>Continuous integration</h2>
+
+<p>
+    <a href="https://github.com/kotz96-lab/TopicsSE_T1/blob/main/.github/workflows/ci.yml">.github/workflows/ci.yml</a>
+    runs JUnit + JaCoCo + PIT on every push to <code>main</code> on
+    Ubuntu with the same JDK 21. Both HTML reports are uploaded as
+    downloadable artifacts. If a claim in this report doesn't match
+    CI, CI wins.
+</p>
+
+</main>
+
+<footer>
+    <a href="threats.html">&larr; Threats to Validity</a>
+    &nbsp;&middot;&nbsp;
+    <a href="ai-tools.html">next: Use of AI Tools &rarr;</a>
+</footer>
+
+</body>
+</html>

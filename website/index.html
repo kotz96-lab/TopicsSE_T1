@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Evaluating BRICS — Empirical study | TopicsSE T1</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+    <div class="header-inner">
+        <a href="index.html" class="site-title">Evaluating BRICS &middot; TopicsSE T1</a>
+        <nav>
+            <a href="index.html" class="active">Overview</a>
+            <a href="junit.html">JUnit5</a>
+            <a href="cit.html">CIT</a>
+            <a href="metamorphic.html">Metamorphic</a>
+            <a href="differential.html">Differential</a>
+            <a href="design.html">Design</a>
+            <a href="threats.html">Threats</a>
+            <a href="reproducibility.html">Reproducibility</a>
+            <a href="ai-tools.html">AI Tools</a>
+        </nav>
+    </div>
+</header>
+
+<main>
+
+<h1>Evaluating the BRICS Java Automata Library</h1>
+
+<p class="small">
+    Empirical software-engineering study for <em>Topics in Software Engineering</em>,
+    Assignment 1. Four weeks of testing, mutation analysis, combinatorial
+    interaction testing, metamorphic testing, differential comparison, and
+    software-design evaluation applied to the
+    <a href="https://github.com/cs-au-dk/dk.brics.automaton">dk.brics.automaton</a>
+    library at commit <code>582d8f3</code>.
+</p>
+
+<h2>Two-line summary</h2>
+
+<p>
+    BRICS is a 24-year-old academic Java library for finite automata and
+    regular expressions. We built a rigorous test harness around it: 1948
+    tests, 77% line coverage, 51% mutation score. Along the way we
+    surfaced three real defects and one API interoperability landmine.
+</p>
+
+<h2>Headline numbers</h2>
+
+<table>
+    <tr>
+        <th>Metric</th>
+        <th>Value</th>
+        <th>What it means</th>
+    </tr>
+    <tr>
+        <td>Total tests</td>
+        <td><span class="metric big">1948</span></td>
+        <td>Across hand-written, PICT-generated, metamorphic, differential, and infra suites</td>
+    </tr>
+    <tr>
+        <td>Line coverage</td>
+        <td><span class="metric big good">77.2%</span></td>
+        <td>Of <code>dk.brics.automaton.*</code> — measured by JaCoCo 0.8.12</td>
+    </tr>
+    <tr>
+        <td>Branch coverage</td>
+        <td><span class="metric big">70.6%</span></td>
+        <td>Of the same package's decision points</td>
+    </tr>
+    <tr>
+        <td>Mutation score</td>
+        <td><span class="metric big">51%</span></td>
+        <td>1074 of 2087 mutations killed by our suite (PIT 1.17.0)</td>
+    </tr>
+    <tr>
+        <td>PICT model</td>
+        <td><span class="metric">7 params &times; 4 constraints</span></td>
+        <td>Generates 34 / 152 / 568 rows at 2-wise / 3-wise / 4-wise strengths</td>
+    </tr>
+    <tr>
+        <td>Metamorphic properties</td>
+        <td><span class="metric">18</span></td>
+        <td>Union, intersection, complement, concat, minimize, determinize, star, roundtrip, prefix</td>
+    </tr>
+    <tr>
+        <td>Refactoring proposals</td>
+        <td><span class="metric">4</span></td>
+        <td>1 bug fix, 2 API-clarity fixes, 1 default-flag choice</td>
+    </tr>
+    <tr>
+        <td>Reproducibility</td>
+        <td><span class="metric good">2 commands</span></td>
+        <td><code>./mvnw verify</code> &amp; <code>./mvnw -Ppit test</code></td>
+    </tr>
+</table>
+
+<h2>Structure of this report</h2>
+
+<p>Nine sections, one per rubric area of the assignment.</p>
+
+<table>
+    <tr>
+        <th>Section</th>
+        <th>Rubric</th>
+        <th>What's in it</th>
+    </tr>
+    <tr>
+        <td><a href="junit.html">JUnit5 Test Suite</a></td>
+        <td>&sect;6, &sect;7</td>
+        <td>Hand-written tests, coverage numbers, evaluation discussion</td>
+    </tr>
+    <tr>
+        <td><a href="cit.html">Combinatorial Interaction Testing</a></td>
+        <td>&sect;9 &mdash; 25 points, biggest single chunk</td>
+        <td>PICT model, parameter rationale, 3&times;2 strength &times; oracle grid</td>
+    </tr>
+    <tr>
+        <td><a href="metamorphic.html">Metamorphic Testing</a></td>
+        <td>&sect;10</td>
+        <td>18 mathematical identities BRICS must respect, tested as JUnit5 properties</td>
+    </tr>
+    <tr>
+        <td><a href="differential.html">Differential Testing</a></td>
+        <td>&sect;11</td>
+        <td>BRICS vs <code>java.util.regex</code> on the compatible subset + documented divergences</td>
+    </tr>
+    <tr>
+        <td><a href="design.html">Software Design Evaluation</a></td>
+        <td>&sect;12</td>
+        <td>SOLID principle-by-principle review, 4 refactoring proposals</td>
+    </tr>
+    <tr>
+        <td><a href="threats.html">Threats to Validity</a></td>
+        <td>&sect;21</td>
+        <td>Internal / external / construct threats + mitigations</td>
+    </tr>
+    <tr>
+        <td><a href="reproducibility.html">Reproducibility</a></td>
+        <td>&sect;16</td>
+        <td>Artifact checklist, seeds, versions, how to regenerate every number</td>
+    </tr>
+    <tr>
+        <td><a href="ai-tools.html">Use of AI Tools</a></td>
+        <td>&sect;21</td>
+        <td>What AI helped write, how we validated, mistakes caught by human review</td>
+    </tr>
+</table>
+
+<h2>Key finding &mdash; the headline for the whole study</h2>
+
+<div class="callout finding">
+    <strong>Research Question 2:</strong> Does combinatorial
+    interaction testing improve mutation scores?
+    <p>
+        <strong>Our data says: it depends on the oracle.</strong>
+        With a <em>weak</em> oracle (smoke + double-negation on one
+        input), increasing interaction strength from 2-wise to
+        3-wise to 4-wise did <em>not</em> measurably improve fault
+        detection: 194 &rarr; 205 &rarr; 204 mutants killed.
+        With a <em>strong</em> oracle (five metamorphic properties on
+        five inputs per row), interaction strength <em>did</em> help
+        up to 3-wise (209 &rarr; 229) and then plateaued (231 at
+        4-wise). The gap between weak and strong widens as strength
+        grows: +15, +24, +27 additional kills at 2/3/4-wise
+        respectively. <strong>The two dimensions compound rather than
+        acting independently.</strong>
+    </p>
+    <p class="small">
+        Full data and interpretation on the
+        <a href="cit.html">Combinatorial Interaction Testing</a> page.
+    </p>
+</div>
+
+<h2>Where to find the source</h2>
+
+<p>
+    All artifacts live in the public repository at
+    <a href="https://github.com/kotz96-lab/TopicsSE_T1">github.com/kotz96-lab/TopicsSE_T1</a>.
+    Every number in this report is reproducible from a clean clone:
+</p>
+
+<pre><code>git clone https://github.com/kotz96-lab/TopicsSE_T1
+cd TopicsSE_T1
+$env:JAVA_HOME = "C:\Program Files\Eclipse Adoptium\jdk-21.0.8.9-hotspot"
+
+./mvnw verify              # JUnit5 + JaCoCo, ~10 seconds
+./mvnw -Ppit test          # PIT mutation report, ~12 minutes</code></pre>
+
+</main>
+
+<footer>
+    Report generated for TopicsSE T1 Assignment 1.
+    Source: <a href="https://github.com/kotz96-lab/TopicsSE_T1">github.com/kotz96-lab/TopicsSE_T1</a>.
+</footer>
+
+</body>
+</html>

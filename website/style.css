@@ -1,0 +1,201 @@
+/* Simple, clean styling for the BRICS-evaluation report site.
+   Target: any modern browser. No JS. No frameworks. */
+
+:root {
+    --fg:            #1a1a1a;
+    --fg-muted:      #555;
+    --bg:            #fdfdfc;
+    --bg-code:       #f4f4f2;
+    --bg-alt:        #f7f6f4;
+    --border:        #ddd;
+    --link:          #0060c0;
+    --link-hover:    #003a80;
+    --accent:        #b03030;
+    --good:          #226622;
+    --warn:          #a05000;
+}
+
+* { box-sizing: border-box; }
+
+html {
+    font-size: 16px;
+    scroll-behavior: smooth;
+}
+
+body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                 "Helvetica Neue", Arial, sans-serif;
+    color: var(--fg);
+    background: var(--bg);
+    line-height: 1.55;
+}
+
+/* ---- Layout: sticky header + centered content column ---- */
+
+header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    padding: 0.6rem 1.2rem;
+}
+
+header .header-inner {
+    max-width: 1000px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+}
+
+header .site-title {
+    font-weight: 700;
+    color: var(--fg);
+    text-decoration: none;
+    font-size: 1.05rem;
+}
+
+nav {
+    display: flex;
+    gap: 0.9rem;
+    flex-wrap: wrap;
+    font-size: 0.9rem;
+}
+
+nav a {
+    color: var(--fg-muted);
+    text-decoration: none;
+    padding: 0.15rem 0;
+}
+nav a:hover, nav a.active {
+    color: var(--link);
+    border-bottom: 2px solid var(--link);
+}
+
+main {
+    max-width: 900px;
+    margin: 2rem auto 5rem;
+    padding: 0 1.5rem;
+}
+
+/* ---- Type & structure ---- */
+
+h1 { font-size: 2.1rem; margin-top: 0; line-height: 1.15; }
+h2 { font-size: 1.5rem; margin-top: 2.5rem; border-bottom: 1px solid var(--border); padding-bottom: 0.3rem; }
+h3 { font-size: 1.2rem; margin-top: 2rem; color: var(--fg); }
+h4 { font-size: 1.0rem; margin-top: 1.5rem; color: var(--fg-muted); text-transform: uppercase; letter-spacing: 0.03em; }
+
+p, li { color: var(--fg); }
+
+a {
+    color: var(--link);
+    text-decoration: underline;
+    text-decoration-color: rgba(0, 96, 192, 0.35);
+    text-underline-offset: 3px;
+}
+a:hover { color: var(--link-hover); text-decoration-color: currentColor; }
+
+blockquote {
+    margin: 1.2rem 0;
+    padding: 0.8rem 1.2rem;
+    border-left: 4px solid var(--accent);
+    background: var(--bg-alt);
+    color: var(--fg);
+    font-style: italic;
+}
+
+/* ---- Code & tables ---- */
+
+code {
+    font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas,
+                 "Liberation Mono", Menlo, monospace;
+    background: var(--bg-code);
+    padding: 0.1em 0.35em;
+    border-radius: 3px;
+    font-size: 0.92em;
+}
+
+pre {
+    background: var(--bg-code);
+    padding: 1rem 1.2rem;
+    border-radius: 5px;
+    overflow-x: auto;
+    line-height: 1.4;
+    font-size: 0.9rem;
+    border: 1px solid var(--border);
+}
+pre code { background: transparent; padding: 0; }
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1.2rem 0;
+    font-size: 0.94rem;
+}
+
+th, td {
+    text-align: left;
+    padding: 0.55rem 0.8rem;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+}
+
+th {
+    background: var(--bg-alt);
+    font-weight: 600;
+    color: var(--fg);
+    border-bottom: 2px solid var(--border);
+}
+
+tr:hover td { background: var(--bg-alt); }
+
+/* ---- Callout classes used across pages ---- */
+
+.callout {
+    padding: 0.8rem 1.2rem;
+    border-radius: 5px;
+    margin: 1.2rem 0;
+    border: 1px solid var(--border);
+    background: var(--bg-alt);
+}
+
+.callout.good   { border-left: 4px solid var(--good); }
+.callout.warn   { border-left: 4px solid var(--warn); }
+.callout.finding { border-left: 4px solid var(--accent); }
+
+.metric {
+    display: inline-block;
+    padding: 0.15rem 0.55rem;
+    background: var(--bg-code);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    font-family: ui-monospace, monospace;
+    font-size: 0.88em;
+    white-space: nowrap;
+}
+
+.metric.good  { background: #e8f4e8; color: var(--good); border-color: #a0c8a0; }
+.metric.warn  { background: #f8f0e0; color: var(--warn); border-color: #d8b880; }
+.metric.big   { font-size: 1.4rem; font-weight: 700; padding: 0.3rem 0.7rem; }
+
+/* ---- Footer ---- */
+
+footer {
+    max-width: 900px;
+    margin: 3rem auto 2rem;
+    padding: 1.5rem 1.5rem 0;
+    border-top: 1px solid var(--border);
+    color: var(--fg-muted);
+    font-size: 0.87rem;
+}
+
+/* ---- Utilities ---- */
+
+.small { font-size: 0.87rem; color: var(--fg-muted); }
+.mono  { font-family: ui-monospace, monospace; }
+.right { text-align: right; }
+.center { text-align: center; }

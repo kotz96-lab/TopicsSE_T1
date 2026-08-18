@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Metamorphic Testing | BRICS Evaluation</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+    <div class="header-inner">
+        <a href="index.html" class="site-title">Evaluating BRICS &middot; TopicsSE T1</a>
+        <nav>
+            <a href="index.html">Overview</a>
+            <a href="junit.html">JUnit5</a>
+            <a href="cit.html">CIT</a>
+            <a href="metamorphic.html" class="active">Metamorphic</a>
+            <a href="differential.html">Differential</a>
+            <a href="design.html">Design</a>
+            <a href="threats.html">Threats</a>
+            <a href="reproducibility.html">Reproducibility</a>
+            <a href="ai-tools.html">AI Tools</a>
+        </nav>
+    </div>
+</header>
+
+<main>
+
+<h1>Metamorphic Testing (&sect;10)</h1>
+
+<p class="small">
+    Assignment &sect;10 requires &ge;10 metamorphic properties. We
+    supply <strong>18</strong>, covering union, intersection,
+    complement, concatenation, minimization, determinization, Kleene
+    star, regex round-trip, and prefix-closure.
+</p>
+
+<h2>The idea in one paragraph</h2>
+
+<p>
+    Instead of asserting "for this input, expect this output"
+    (example-based testing), metamorphic testing asserts
+    <em>relationships</em> between outputs that must hold regardless
+    of what the specific values are. For example, we don't need to
+    know what language <code>(a|b)*c</code> accepts to check that
+    <code>A.union(B)</code> and <code>B.union(A)</code> accept the
+    same strings &mdash; union commutativity is a mathematical
+    identity BRICS must respect.
+</p>
+
+<h2>Oracle used across all properties</h2>
+
+<p>
+    Language equivalence via double inclusion:
+    <code>sameLanguage(A, B) := A.subsetOf(B) &amp;&amp; B.subsetOf(A)</code>.
+    BRICS' <code>Automaton.equals</code> compares hashCode (which is
+    structural, not semantic), so we avoid it. <code>subsetOf</code>
+    determinizes internally and is a genuine semantic check.
+</p>
+
+<h2>The 18 properties</h2>
+
+<table>
+    <tr><th>#</th><th>Property</th><th>Identity</th></tr>
+    <tr><td>MR-1</td><td>Union commutativity</td><td><code>L(A &cup; B) = L(B &cup; A)</code></td></tr>
+    <tr><td>MR-2</td><td>Union associativity</td><td><code>L((A &cup; B) &cup; C) = L(A &cup; (B &cup; C))</code></td></tr>
+    <tr><td>MR-3</td><td>Union idempotence</td><td><code>L(A &cup; A) = L(A)</code></td></tr>
+    <tr><td>MR-4</td><td>Intersection commutativity</td><td><code>L(A &cap; B) = L(B &cap; A)</code></td></tr>
+    <tr><td>MR-5</td><td>Intersection idempotence</td><td><code>L(A &cap; A) = L(A)</code></td></tr>
+    <tr><td>MR-6</td><td>Double complement</td><td><code>L(&not;&not;A) = L(A)</code></td></tr>
+    <tr><td>MR-7</td><td>De Morgan (union)</td><td><code>L(&not;(A &cup; B)) = L(&not;A &cap; &not;B)</code></td></tr>
+    <tr><td>MR-8</td><td>De Morgan (intersection)</td><td><code>L(&not;(A &cap; B)) = L(&not;A &cup; &not;B)</code></td></tr>
+    <tr><td>MR-9</td><td>Concatenation associativity</td><td><code>L((A&middot;B)&middot;C) = L(A&middot;(B&middot;C))</code></td></tr>
+    <tr><td>MR-10</td><td>Minimize preserves language</td><td><code>L(minimize(A)) = L(A)</code></td></tr>
+    <tr><td>MR-11</td><td>Minimize idempotence (structural)</td><td><code>|minimize(A)| = |minimize(minimize(A))|</code></td></tr>
+    <tr><td>MR-12</td><td>Determinize preserves language</td><td><code>L(determinize(A)) = L(A)</code></td></tr>
+    <tr><td>MR-13</td><td>Union monotone</td><td><code>A &sube; (A &cup; B)</code></td></tr>
+    <tr><td>MR-14</td><td>Intersection subset</td><td><code>(A &cap; B) &sube; A</code></td></tr>
+    <tr><td>MR-15a</td><td>Empty absorbs intersection</td><td><code>L(A &cap; &empty;) = &empty;</code></td></tr>
+    <tr><td>MR-15b</td><td>Empty is union identity</td><td><code>L(A &cup; &empty;) = L(A)</code></td></tr>
+    <tr><td>MR-16</td><td>Kleene star idempotence</td><td><code>L((A*)*) = L(A*)</code></td></tr>
+    <tr><td>MR-17</td><td>Regex round-trip preserves language</td><td><code>L(parse(pattern.toString())) = L(parse(pattern))</code></td></tr>
+    <tr><td>MR-18</td><td>Prefix-close includes empty</td><td>&#x03B5; &isin; prefixClose(A) for non-empty A</td></tr>
+</table>
+
+<p class="small">
+    Source: <a href="https://github.com/kotz96-lab/TopicsSE_T1/blob/main/src/test/java/se/topics/t1/metamorphic/MetamorphicPropertiesTest.java">MetamorphicPropertiesTest.java</a>.
+    All 18 pass on the vendored BRICS commit <code>582d8f3</code>.
+</p>
+
+<h2>Example: property MR-6 (double complement) implementation</h2>
+
+<pre><code>@Test
+@DisplayName("[MR-6] &not;(&not;A) has the same language as A")
+void doubleComplement() {
+    assertTrue(sameLanguage(a().get(), a().get().complement().complement()));
+    assertTrue(sameLanguage(aStar().get(), aStar().get().complement().complement()));
+    assertTrue(sameLanguage(abOr().get(), abOr().get().complement().complement()));
+}</code></pre>
+
+<h2>Interaction with CIT &mdash; a stronger oracle experiment</h2>
+
+<p>
+    A subset of these properties (MR-3, MR-5, MR-6, MR-10, MR-12) is
+    also applied per-PICT-row in
+    <a href="https://github.com/kotz96-lab/TopicsSE_T1/blob/main/src/test/java/se/topics/t1/pict/PictMetamorphicTest.java">PictMetamorphicTest</a>.
+    That gives us 754 additional PICT-generated automata &times; 5
+    metamorphic checks &times; 5 sampled inputs = 18,850 property
+    assertions.
+</p>
+
+<p>
+    This is the "strong oracle" arm of the CIT experiment (see the
+    <a href="cit.html">CIT page</a>). Combining metamorphic testing
+    with combinatorial testing is exactly what assignment
+    &sect;9.3 and &sect;10 suggest as an integration path, and the
+    results (interaction strength + oracle strength <em>compound</em>)
+    make the case that these two techniques are complementary rather
+    than substitutes.
+</p>
+
+<h2>Violations found</h2>
+
+<p>
+    <strong>None so far.</strong> All 18 properties hold across the
+    tested automata. That's a positive finding: BRICS' regular-language
+    algebra is implemented correctly on the operations we exercised.
+    It also means the mutation-killing power of these properties comes
+    from catching <em>injected</em> mutations of BRICS, not from
+    exposing existing bugs.
+</p>
+
+<h2>Oracle limitations</h2>
+
+<ul>
+    <li>
+        <strong>Language-membership blindness to internal structure:</strong>
+        two automata can accept the same language but have different
+        state counts, determinism flags, or minimization state. Our
+        oracle can't tell. That's fine for property tests (we care
+        about language), but shows up in the mutation-testing analysis
+        &mdash; some mutants that change internal state without
+        changing language are invisible to us.
+    </li>
+    <li>
+        <strong>Sample-input limitation:</strong> we test each property
+        on a handful of pre-chosen inputs. A property could
+        theoretically fail on an input we didn't sample. The
+        PICT-driven counterpart in <code>PictMetamorphicTest</code>
+        widens this to 754 automata &times; 5 inputs, mitigating
+        the risk.
+    </li>
+</ul>
+
+</main>
+
+<footer>
+    <a href="cit.html">&larr; Combinatorial Interaction Testing</a>
+    &nbsp;&middot;&nbsp;
+    <a href="differential.html">next: Differential Testing &rarr;</a>
+</footer>
+
+</body>
+</html>

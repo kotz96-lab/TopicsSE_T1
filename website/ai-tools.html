@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Use of AI Tools | BRICS Evaluation</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+    <div class="header-inner">
+        <a href="index.html" class="site-title">Evaluating BRICS &middot; TopicsSE T1</a>
+        <nav>
+            <a href="index.html">Overview</a>
+            <a href="junit.html">JUnit5</a>
+            <a href="cit.html">CIT</a>
+            <a href="metamorphic.html">Metamorphic</a>
+            <a href="differential.html">Differential</a>
+            <a href="design.html">Design</a>
+            <a href="threats.html">Threats</a>
+            <a href="reproducibility.html">Reproducibility</a>
+            <a href="ai-tools.html" class="active">AI Tools</a>
+        </nav>
+    </div>
+</header>
+
+<main>
+
+<h1>Use of AI Tools (&sect;21)</h1>
+
+<p class="small">
+    &sect;21 requires we disclose the AI tools used, what we used them
+    for, how we validated outputs, and what mistakes we discovered and
+    corrected. Full running log kept in
+    <a href="https://github.com/kotz96-lab/TopicsSE_T1/blob/main/docs/AI_TOOLS.md">docs/AI_TOOLS.md</a>
+    &mdash; this page summarises.
+</p>
+
+<h2>Tool used</h2>
+
+<p><strong>Claude Code</strong> (Anthropic Opus 4.7 with 1M-token
+context window), operated as a coding-and-analysis assistant. The tool
+runs locally, has read/write access to the repo, and executes shell
+commands under human supervision.</p>
+
+<h2>What it was used for</h2>
+
+<ul>
+    <li><strong>Test generation.</strong> Most of the 180
+        hand-crafted JUnit5 tests were AI-drafted from BRICS's public
+        API, then reviewed by us.</li>
+    <li><strong>PICT model refinement.</strong> The parameter set,
+        value ranges, and constraints in
+        <code>pict/models/regex.pict</code> were AI-authored based on
+        a reading of BRICS' source, then adjusted after the
+        &sect;9.4 experiment.</li>
+    <li><strong>Combinatorial test harness.</strong>
+        <code>RegexRowBuilder</code>, <code>PictRegexTest</code>, and
+        <code>PictMetamorphicTest</code> are all AI-authored.</li>
+    <li><strong>Metamorphic properties.</strong> All 18 properties in
+        <code>MetamorphicPropertiesTest</code> are AI-drafted; we
+        reviewed each identity for mathematical correctness.</li>
+    <li><strong>Differential tests.</strong>
+        <code>DifferentialTest</code> compatible-subset cases were
+        AI-authored. The known-disagreements section was expanded
+        after we surfaced the <code>@</code>-metacharacter finding.</li>
+    <li><strong>Analysis writing.</strong> The SOLID analysis,
+        refactoring proposals, mutation-analysis narrative, threats
+        catalogue, and PICT rationale documents were all AI-drafted.</li>
+    <li><strong>Website scaffolding.</strong> This site's HTML + CSS
+        was AI-generated from the source docs.</li>
+</ul>
+
+<h2>Validation approach</h2>
+
+<p>
+    Every AI-authored artifact was validated by at least one of:
+</p>
+
+<ul>
+    <li>Compilation + <code>./mvnw verify</code> (all 1948 tests pass).</li>
+    <li>Cross-reference with BRICS Javadoc where AI made claims about behaviour.</li>
+    <li>Manual re-reading of any semantic claim before it landed in a report doc.</li>
+    <li>Independent verification via a distinct test flavour (e.g., a PICT test surfacing a mistake in the differential test set).</li>
+</ul>
+
+<h2>Mistakes discovered and corrected</h2>
+
+<p>
+    The following mistakes were made by AI and caught by human review
+    or by the test infrastructure itself. Full details for each are in
+    <code>docs/AI_TOOLS.md</code>.
+</p>
+
+<h3>1. Wrong assumption about <code>getCommonPrefix()</code></h3>
+<p>AI wrote a test assuming <code>Automaton.getCommonPrefix()</code>
+gives the semantic longest-common-prefix of the language. Test failed
+because <code>getCommonPrefix</code> walks the structural graph &mdash;
+a branching NFA gives empty prefix. Fixed by using a minimized DFA
+input.</p>
+
+<h3>2. Wrong assumption about <code>isTotal()</code></h3>
+<p>AI wrote <code>assertTrue(complement(makeEmpty()).isTotal())</code>
+assuming <code>isTotal</code> is semantic. It's actually structural.
+The failed test surfaced the API-clarity issue, which became
+<a href="design.html#proposal-2">Refactoring Proposal 2</a>.</p>
+
+<h3>3. Wrong assumption about <code>RegExp</code> syntax flags</h3>
+<p>AI wrote <code>assertThrows(IllegalArgumentException, () -&gt; new RegExp("...", flagsWithoutIntersection))</code>
+assuming that disabling the intersection flag would make the parser
+reject the <code>&amp;</code> character. Actually the flag change just
+makes <code>&amp;</code> a literal. Fixed to test the language
+divergence directly.</p>
+
+<h3>4. <code>Datatypes.main</code> crash in <code>@BeforeAll</code></h3>
+<p>AI wrote a <code>DatatypesTest</code> that invoked
+<code>Datatypes.main()</code> in a <code>@BeforeAll</code> block to
+populate the in-memory automaton cache. Blew up because
+<code>main</code> reads a companion resource
+<code>src/Unicode.txt</code> not shipped in the vendored source. Fixed
+by testing only the reachable surface (predicate methods).</p>
+
+<h3>5. <code>@</code>-metacharacter in "compatible subset" differential test</h3>
+<p>AI added <code>[a-z]+@[a-z]+</code> as a compatible-subset case,
+assuming <code>@</code> is a literal in BRICS. It's actually
+<code>ANYSTRING</code>. Test failed, and the failure surfaced
+<a href="differential.html#at-symbol">the <code>@</code>-metacharacter
+finding</a>. Also blocked PIT from running (PIT requires all tests
+green). Fixed by moving the case to "known disagreements" and using a
+neutral character (<code>X</code>) in the compatible-subset case.</p>
+
+<h3>6. <strong id="pit-filter-bug">PIT filter bug &mdash; the biggest one</strong></h3>
+<div class="callout warn">
+    <p>
+        AI wrote the per-strength CIT experiment using
+        <code>-Dgroups=&lt;tag&gt;</code> to filter PIT by JUnit tag.
+        <code>-Dgroups=</code> is a Surefire flag; PIT uses its own
+        JUnit engine and silently ignores it. Consequence: every
+        per-strength PIT run was actually executing the full 1948-test
+        suite. The "flat" mutation scores across strengths that AI
+        initially reported (~50.7% across all six combinations) were
+        the full-suite score with PIT run-to-run noise, not real
+        per-strength scores.
+    </p>
+    <p>
+        <strong>How we caught it:</strong> reviewer asked to verify
+        the strong oracle was actually stronger. Inspecting the
+        <code>killingTest</code> field in <code>mutations.xml</code>
+        revealed kills coming from every test class in the suite,
+        not just the tag-filtered one.
+    </p>
+    <p>
+        <strong>Fix:</strong> PIT's own filter flag is
+        <code>-DincludedGroups=&lt;tag&gt;</code>. Re-ran all six
+        combinations with the working filter. Corrected data is on
+        the <a href="cit.html">CIT page</a>.
+    </p>
+    <p>
+        <strong>Lesson (worth quoting in the report):</strong>
+        the AI-written PIT invocation was self-consistent (all filtered
+        runs showed similar numbers, which read as "valid null result")
+        but scientifically meaningless. Only human review of a specific
+        hypothesis surfaced the flag bug. Automated correctness &ne;
+        methodological correctness.
+    </p>
+</div>
+
+<h3>7. Wrong witness for Kleene-star idempotence property</h3>
+<p>AI wrote a metamorphic test for <code>(X*)* = X*</code> using
+<code>(a|b)+</code> as a witness. <code>(X+)* &ne; X+</code> because
+<code>+</code> doesn't accept empty and <code>*</code> does. Test
+correctly failed. Fixed to use <code>(a|b)*</code> witness.</p>
+
+<h3>8. Unicode-escape-in-comment compilation error</h3>
+<p>AI wrote a Java comment containing the literal text <code>\u escapes</code>.
+Java processes <code>\u</code> sequences even inside comments &mdash; the
+file failed to compile. Fixed by rewording the comment.</p>
+
+<h2>What we learned about AI-assisted testing</h2>
+
+<ol>
+    <li><strong>AI is fast at scaffolding, weak at methodological
+        sanity-checking.</strong> The filter-flag bug is the
+        clearest example: the AI wrote self-consistent code that
+        produced self-consistent (but wrong) results, and would
+        have shipped it without human intervention.</li>
+    <li><strong>Tests that fail because of AI wrong assumptions
+        often surface real findings.</strong> Two of our four
+        refactoring proposals (<code>isTotal</code> semantic vs
+        structural; <code>@</code>-metacharacter) came from AI
+        making a plausible-but-wrong assumption about BRICS and the
+        resulting failing test being informative.</li>
+    <li><strong>Compilation and green-suite are necessary but not
+        sufficient.</strong> Bugs in AI-generated infrastructure
+        can be invisible to those checks. Independent-oracle
+        validation (does the strong oracle actually kill more mutants
+        than the weak one, when isolated?) is required.</li>
+</ol>
+
+<h2>Session log</h2>
+
+<p>
+    Every AI session is timestamped and summarised in
+    <a href="https://github.com/kotz96-lab/TopicsSE_T1/blob/main/docs/AI_TOOLS.md">docs/AI_TOOLS.md</a>
+    with what was asked, what was produced, how it was validated, and
+    what corrections were needed.
+</p>
+
+</main>
+
+<footer>
+    <a href="reproducibility.html">&larr; Reproducibility</a>
+    &nbsp;&middot;&nbsp;
+    <a href="index.html">&uarr; back to overview</a>
+</footer>
+
+</body>
+</html>

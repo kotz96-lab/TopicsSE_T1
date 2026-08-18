@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Differential Testing | BRICS Evaluation</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+    <div class="header-inner">
+        <a href="index.html" class="site-title">Evaluating BRICS &middot; TopicsSE T1</a>
+        <nav>
+            <a href="index.html">Overview</a>
+            <a href="junit.html">JUnit5</a>
+            <a href="cit.html">CIT</a>
+            <a href="metamorphic.html">Metamorphic</a>
+            <a href="differential.html" class="active">Differential</a>
+            <a href="design.html">Design</a>
+            <a href="threats.html">Threats</a>
+            <a href="reproducibility.html">Reproducibility</a>
+            <a href="ai-tools.html">AI Tools</a>
+        </nav>
+    </div>
+</header>
+
+<main>
+
+<h1>Differential Testing (&sect;11)</h1>
+
+<p class="small">
+    Assignment &sect;11 requires comparing selected BRICS behaviours
+    against <code>java.util.regex</code> to identify semantic
+    differences, edge cases, and possible bugs.
+</p>
+
+<h2>Test design</h2>
+
+<p>
+    Two regex dialects, whole-string match on both sides. We test
+    ~38 patterns from the <strong>compatible subset</strong> (features
+    both dialects support: literals, ranges, negation, alternation,
+    quantifiers, grouping) and document known semantic divergences
+    separately.
+</p>
+
+<p>
+    Source:
+    <a href="https://github.com/kotz96-lab/TopicsSE_T1/blob/main/src/test/java/se/topics/t1/differential/DifferentialTest.java">DifferentialTest.java</a>.
+</p>
+
+<h2>Compatible-subset agreement (all pass)</h2>
+
+<p>
+    For every one of these ~38 (regex, input, expected) tuples, both
+    engines agree with each other and with the expected value:
+</p>
+
+<table>
+    <tr><th>Feature</th><th>Example</th><th>Both engines say</th></tr>
+    <tr><td>Literals</td>                <td><code>abc</code> vs <code>"abc"</code></td>              <td>match</td></tr>
+    <tr><td>Character range</td>         <td><code>[a-z]</code> vs <code>"z"</code></td>              <td>match</td></tr>
+    <tr><td>Negated range</td>           <td><code>[^0-9]</code> vs <code>"a"</code></td>             <td>match</td></tr>
+    <tr><td>Alternation</td>             <td><code>cat|dog</code> vs <code>"cat"</code></td>          <td>match</td></tr>
+    <tr><td>Kleene star</td>             <td><code>a*</code> vs <code>""</code></td>                  <td>match</td></tr>
+    <tr><td>Plus</td>                    <td><code>a+</code> vs <code>""</code></td>                  <td>no match</td></tr>
+    <tr><td>Optional</td>                <td><code>colou?r</code> vs <code>"color"</code></td>        <td>match</td></tr>
+    <tr><td>Bounded repetition</td>      <td><code>a{2,4}</code> vs <code>"aaa"</code></td>           <td>match</td></tr>
+    <tr><td>Grouping + quantifier</td>   <td><code>(ab)+</code> vs <code>"abab"</code></td>           <td>match</td></tr>
+    <tr><td>Nested groups + alternation</td><td><code>(a|b)(c|d)</code> vs <code>"ac"</code></td>     <td>match</td></tr>
+    <tr><td>Mixed</td>                   <td><code>[a-z]+X[a-z]+</code> vs <code>"abcXdef"</code></td><td>match</td></tr>
+</table>
+
+<h2>Documented disagreements</h2>
+
+<p>
+    Three genuine dialect divergences we found. Each is a captured
+    test in the "KnownDisagreements" nested class.
+</p>
+
+<h3>1. Dot metacharacter and newline</h3>
+
+<p>
+    BRICS treats <code>.</code> as "any character including newline."
+    Java's default treats <code>.</code> as "any character except line
+    terminator." So <code>"."</code> vs input <code>"\n"</code>:
+    <span class="metric good">BRICS matches</span>
+    but <span class="metric warn">Java does not</span>.
+</p>
+
+<h3>2. The <code>@</code> character &mdash; BRICS' ANYSTRING metacharacter</h3>
+
+<div class="callout finding">
+    <p>
+        In BRICS' default regex flags, <code>@</code> means
+        <strong>ANYSTRING</strong> (matches any string, including
+        the empty string). Java treats <code>@</code> as a literal
+        character.
+    </p>
+    <p>
+        Concrete example: pattern <code>[a-z]+@[a-z]+</code> against
+        input <code>"abc"</code>:
+        <span class="metric good">BRICS matches</span>
+        (it parses as "letters, then anything, then letters" &mdash;
+        with the "anything" matching the empty string between position 1
+        and position 1) but
+        <span class="metric warn">Java does not</span>
+        (it requires a literal <code>@</code> in the input).
+    </p>
+    <p>
+        Anyone porting a regex from Java to BRICS (or vice versa)
+        without knowing about this metacharacter gets silently wrong
+        matching. No error, no warning &mdash; just different
+        accept/reject decisions.
+    </p>
+</div>
+
+<h3>3. The <code>#</code> character &mdash; BRICS' EMPTY metacharacter</h3>
+
+<p>
+    In BRICS, <code>#</code> means the <strong>EMPTY language</strong>
+    (matches nothing at all). In Java, <code>#</code> is a literal.
+    Pattern <code>#</code> vs input <code>"#"</code>:
+    <span class="metric warn">BRICS rejects</span>
+    (empty language accepts nothing) but
+    <span class="metric good">Java matches</span>
+    (literal <code>#</code> character).
+</p>
+
+<h2>BRICS-only operators (no equivalent in Java)</h2>
+
+<p>
+    Three regex operators BRICS supports that <code>java.util.regex</code>
+    doesn't. We show explicit differential comparisons for each.
+</p>
+
+<ul>
+    <li>
+        <code>&amp;</code> (intersection): BRICS <code>(a|b)&amp;(b|c)</code>
+        matches only <code>"b"</code>. Java parses the same source as
+        capture group, literal <code>&amp;</code>, capture group &mdash;
+        matches <code>"a&amp;b"</code>, <code>"b&amp;c"</code>, etc. The
+        same string is accepted by exactly one engine at a time.
+    </li>
+    <li>
+        <code>~</code> (complement): BRICS <code>~(a)</code> matches
+        everything except <code>"a"</code>. Java parses it as literal
+        <code>~</code> followed by capture group <code>(a)</code>, so
+        it matches only the 2-character string <code>"~a"</code>.
+    </li>
+    <li>
+        <code>&lt;name&gt;</code> (automaton reference): BRICS looks
+        up a named automaton via <code>AutomatonProvider</code>. Java
+        parses the angle brackets as literals.
+    </li>
+</ul>
+
+<h2>Finding &mdash; and its implication for the report</h2>
+
+<p>
+    The <code>@</code>, <code>#</code>, <code>~</code>, <code>&amp;</code>,
+    and <code>&lt;&gt;</code> metacharacters together mean that
+    <strong>five ordinary ASCII characters have different meanings in
+    BRICS vs every other mainstream regex engine</strong>. This
+    surfaces as
+    <a href="design.html#proposal-4">Refactoring Proposal 4</a> in the
+    design section: BRICS' default regex flags should be
+    <em>literal-first</em>, with the metacharacter interpretations
+    opt-in via explicit syntax flags.
+</p>
+
+<p class="small">
+    We discovered the <code>@</code> metacharacter behaviour
+    accidentally &mdash; a differential test that we initially
+    intended as "compatible subset" (<code>[a-z]+@[a-z]+</code>)
+    failed because BRICS accepted <code>"abc"</code>. That's a
+    concrete example of differential testing surfacing a real
+    finding.
+</p>
+
+</main>
+
+<footer>
+    <a href="metamorphic.html">&larr; Metamorphic Testing</a>
+    &nbsp;&middot;&nbsp;
+    <a href="design.html">next: Software Design Evaluation &rarr;</a>
+</footer>
+
+</body>
+</html>

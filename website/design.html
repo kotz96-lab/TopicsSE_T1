@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Software Design Evaluation | BRICS Evaluation</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+    <div class="header-inner">
+        <a href="index.html" class="site-title">Evaluating BRICS &middot; TopicsSE T1</a>
+        <nav>
+            <a href="index.html">Overview</a>
+            <a href="junit.html">JUnit5</a>
+            <a href="cit.html">CIT</a>
+            <a href="metamorphic.html">Metamorphic</a>
+            <a href="differential.html">Differential</a>
+            <a href="design.html" class="active">Design</a>
+            <a href="threats.html">Threats</a>
+            <a href="reproducibility.html">Reproducibility</a>
+            <a href="ai-tools.html">AI Tools</a>
+        </nav>
+    </div>
+</header>
+
+<main>
+
+<h1>Software Design Evaluation (&sect;12)</h1>
+
+<p class="small">
+    &sect;12 asks for SOLID analysis, design-pattern identification,
+    and &ge;3 concrete refactoring proposals. We deliver a
+    principle-by-principle review, a design-pattern catalogue, and
+    <strong>4 formal refactoring proposals</strong> (three defects/API
+    issues plus one interoperability recommendation).
+</p>
+
+<h2>SOLID &mdash; principle by principle</h2>
+
+<h3>S &mdash; Single Responsibility</h3>
+<p><strong>Partially violated.</strong> The most impactful violation is that
+<code>Automaton.java</code> (~1150 lines, <strong>78 public methods</strong>)
+is simultaneously:</p>
+<ol>
+    <li>a <strong>data structure</strong> (holds <code>initial</code>, <code>singleton</code>, <code>deterministic</code> fields; is a mutable graph of <code>State</code> and <code>Transition</code>);</li>
+    <li>a <strong>facade for every operation</strong> (most of those 78 methods are one-line delegates to <code>BasicOperations</code>, <code>MinimizationOperations</code>, <code>SpecialOperations</code>, <code>ShuffleOperations</code>);</li>
+    <li>a <strong>static factory</strong> (<code>makeEmpty</code>, <code>makeString</code>, <code>makeChar</code>, ...);</li>
+    <li>a <strong>serialization endpoint</strong> (<code>load</code>, <code>store</code>, custom <code>equals</code>/<code>hashCode</code>);</li>
+    <li>and a <strong>global-configuration container</strong> (<code>setMinimization</code>, <code>setMinimizeAlways</code>, <code>setAllowMutate</code> &mdash; static flags affecting the whole library).</li>
+</ol>
+<p>Each is a distinct responsibility. Any of them changing touches <code>Automaton.java</code>.</p>
+
+<h3>O &mdash; Open / Closed</h3>
+<p><strong>Closed for extension.</strong> BRICS has no interfaces or abstract
+classes in the automaton module (except Java's marker interfaces
+<code>Serializable</code> and <code>Cloneable</code>). The one seam is
+<code>AutomatonProvider</code> for named-automaton lookup. To add a new
+operation you must modify <code>Automaton.java</code> and one of the
+utility classes. To swap minimization algorithms you edit
+<code>MinimizationOperations.minimize</code>'s switch statement.</p>
+
+<h3>L &mdash; Liskov Substitution</h3>
+<p><strong>Mostly vacuous, one genuine hazard.</strong> BRICS uses inheritance
+in almost no places. The one hazard is
+<a href="#proposal-2"><code>Automaton.isTotal()</code></a> &mdash;
+its method name promises a semantic query but its implementation is a
+purely structural check. Not an LSP violation in the classic
+class-hierarchy sense (there's no subclass), but a violation of the
+"contract vs behaviour" flavour.</p>
+
+<h3>I &mdash; Interface Segregation</h3>
+<p><strong>Vacuously satisfied.</strong> No domain interfaces to segregate.
+The one interface (<code>AutomatonProvider</code>) is a single-method
+interface &mdash; textbook ISP compliance.</p>
+
+<h3>D &mdash; Dependency Inversion</h3>
+<p><strong>Violated systematically, but with a caveat.</strong> Every dependency
+in BRICS is concrete: <code>BasicOperations.union(Automaton a1, Automaton a2)</code>
+&mdash; no interface, callers can't substitute alternatives. <code>RegExp</code>
+depends directly on <code>Automaton</code>, <code>BasicAutomata</code>,
+<code>BasicOperations</code>.</p>
+<p><em>Fair caveat</em>: BRICS is a library, not an application. In library
+code, concrete types in signatures are often justifiable &mdash; there's
+typically no substitution concern (nobody's swapping in an alternative
+<code>Automaton</code>), and interface indirection would add ceremony
+without benefit. Read the DIP verdict as "opinionated" rather than
+"broken."</p>
+
+<h2>Design patterns actually used</h2>
+
+<h3>Static factory method (widely used)</h3>
+<p>Where: <code>BasicAutomata.make*</code>, <code>Automaton.make*</code>.
+Intent-revealing names (<code>makeAnyChar</code> vs <code>new Automaton()</code>)
+and hidden singleton short-circuits. Downside: contributes to the god-class
+problem on <code>Automaton</code>.</p>
+
+<h3>Utility class / static-method module (widely used)</h3>
+<p>Where: <code>BasicOperations</code>, <code>MinimizationOperations</code>,
+<code>SpecialOperations</code>, <code>ShuffleOperations</code> are all
+<code>final class</code>es with private constructors and static methods only.
+Advantage: easy testability, no lifecycle. Downside: locks in the OCP
+violation.</p>
+
+<h3>Comparator (small)</h3>
+<p><code>TransitionComparator implements Comparator&lt;Transition&gt;</code> exposes
+two orderings via a constructor flag. Minor code smell &mdash; would be
+cleaner as two named comparators.</p>
+
+<h3>Visitor-adjacent recursive walk</h3>
+<p><code>RegExp.toAutomaton</code> recurses over the parse tree by switching
+on a <code>Kind</code> enum. Not full Visitor (no <code>accept</code>
+method), but same intent: separate parse-tree structure from
+transformation. Suffers the classic switch-over-type-tag OCP issue.</p>
+
+<h2>Refactoring proposals</h2>
+
+<h3 id="proposal-1">Proposal 1 &mdash; Fix <code>Datatypes.exists()</code> to actually return <code>false</code></h3>
+
+<p><strong>Type:</strong> <span class="metric warn">Bug fix</span>
+&nbsp; <strong>Location:</strong> <code>dk.brics.automaton.Datatypes</code>
+line 470</p>
+
+<p><strong>Problem.</strong> Current implementation:</p>
+
+<pre><code>public static boolean exists(String name) {
+    try {
+        Datatypes.class.getClassLoader().getResource(name + ".aut").openStream().close();
+    } catch (IOException e) {
+        return false;
+    }
+    return true;
+}</code></pre>
+
+<p><code>ClassLoader.getResource(...)</code> returns <strong>null</strong> when
+the resource is absent from the classpath. Calling <code>.openStream()</code>
+on <code>null</code> throws <code>NullPointerException</code>, which is
+<em>not</em> an <code>IOException</code> &mdash; so it escapes the catch.
+<code>exists("NoSuchName")</code> throws NPE instead of returning
+<code>false</code>.</p>
+
+<p><strong>Proposed fix:</strong></p>
+
+<pre><code>public static boolean exists(String name) {
+    URL url = Datatypes.class.getClassLoader().getResource(name + ".aut");
+    if (url == null) return false;
+    try (InputStream in = url.openStream()) {
+        return true;
+    } catch (IOException e) {
+        return false;
+    }
+}</code></pre>
+
+<p>Fixes the NPE and the stream leak on the happy path.</p>
+
+<p><strong>Effort:</strong> low. <strong>Risk:</strong> low (any caller
+already wrapping <code>exists</code> in defensive NPE-catch will get
+<code>false</code> instead &mdash; the intended behaviour).</p>
+
+<h3 id="proposal-2">Proposal 2 &mdash; Clarify <code>isTotal()</code>: semantic vs structural</h3>
+
+<p><strong>Type:</strong> <span class="metric">API-clarity refactor</span>
+&nbsp; <strong>Location:</strong> <code>BasicOperations.isTotal</code>
+line 583, delegate at <code>Automaton.isTotal</code> line 943</p>
+
+<p><strong>Problem.</strong> <code>isTotal()</code> reads like a semantic
+query ("does this automaton accept every string?"). Actually it's a
+structural check: returns <code>true</code> only if the initial state
+accepts AND has exactly one self-loop from <code>MIN_VALUE</code> to
+<code>MAX_VALUE</code>. Any semantically-total automaton in a different
+shape returns <code>false</code>. Concrete surprise:
+<code>complement(makeEmpty()).isTotal() == false</code> even though the
+resulting language IS &Sigma;*.</p>
+
+<p><strong>Two fix options:</strong></p>
+
+<ul>
+    <li><strong>Option A (surgical):</strong> rename to
+        <code>isCanonicalTotal()</code>. Its actual semantics become
+        explicit in the name. Zero cost, mild breaking change.</li>
+    <li><strong>Option B (compatible):</strong> keep the fast path,
+        add a semantic fallback via <code>subsetOf(makeAnyString(), a)</code>
+        when the canonical shape doesn't match. Costs one <code>subsetOf</code>
+        call in the slow path.</li>
+</ul>
+
+<h3 id="proposal-3">Proposal 3 &mdash; Replace <code>getFiniteStrings(a, limit)</code> null-return</h3>
+
+<p><strong>Type:</strong> <span class="metric">API-hygiene refactor</span>
+&nbsp; <strong>Location:</strong> <code>SpecialOperations.getFiniteStrings</code>
+line 493</p>
+
+<p><strong>Problem.</strong> When the language has more than <code>limit</code>
+strings, the method silently returns <code>null</code> &mdash; but the return
+type is <code>Set&lt;String&gt;</code>, so naive callers who write
+<code>for (String s : result) { ... }</code> get an NPE.</p>
+
+<p><strong>Two fix options:</strong> either throw
+<code>IllegalStateException</code> ("language has more than <em>N</em>
+strings"), or change the return type to <code>Optional&lt;Set&lt;String&gt;&gt;</code>.
+Both make the "too many strings" signal explicit at the call site.</p>
+
+<h3 id="proposal-4">Proposal 4 &mdash; Make BRICS' regex default flags conservative (literal-first)</h3>
+
+<p><strong>Type:</strong> <span class="metric warn">API-default choice (interop)</span>
+&nbsp; <strong>Location:</strong> <code>RegExp</code> constructor line 188</p>
+
+<p><strong>Problem.</strong> By defaulting to <code>ALL</code>, BRICS silently
+gives five ordinary ASCII characters non-obvious meanings:</p>
+
+<table>
+    <tr><th>Char</th><th>BRICS meaning</th><th>Java / PCRE / POSIX meaning</th></tr>
+    <tr><td><code>@</code></td>       <td>ANYSTRING (&Sigma;*)</td>              <td>literal <code>@</code></td></tr>
+    <tr><td><code>#</code></td>       <td>EMPTY (matches nothing)</td>            <td>literal <code>#</code></td></tr>
+    <tr><td><code>~</code></td>       <td>complement of following expression</td> <td>literal <code>~</code></td></tr>
+    <tr><td><code>&amp;</code></td>   <td>intersection of two expressions</td>    <td>literal <code>&amp;</code></td></tr>
+    <tr><td><code>&lt;name&gt;</code></td><td>automaton reference</td>            <td>literals</td></tr>
+</table>
+
+<p>Anyone porting a regex between BRICS and Java gets silently wrong
+matching &mdash; no crash, no warning, just different accept/reject
+decisions on the same input. Reproducer: the <code>@</code>-metacharacter
+finding on the <a href="differential.html">differential page</a>.</p>
+
+<p><strong>Proposed fix:</strong> flip the default. <code>new RegExp(s)</code>
+should delegate to <code>new RegExp(s, RegExp.NONE)</code> &mdash;
+all five metacharacters literal by default. Users opt in with
+<code>new RegExp(s, RegExp.ANYSTRING)</code>.</p>
+
+<p><strong>Effort:</strong> low. <strong>Risk:</strong>
+<span class="metric warn">high</span> &mdash; breaking change for every
+existing user relying on the default flags. Could be phased with
+deprecation across two releases.</p>
+
+<h2>Summary of proposals</h2>
+
+<table>
+    <tr><th>#</th><th>Location</th><th>Type</th><th>Effort</th><th>Risk</th></tr>
+    <tr><td>1</td><td><code>Datatypes.exists</code></td>                    <td>Bug fix</td>              <td>Low</td>    <td>Low</td></tr>
+    <tr><td>2</td><td><code>BasicOperations.isTotal</code></td>             <td>Method-contract clarity</td> <td>Low-Med</td> <td>Med</td></tr>
+    <tr><td>3</td><td><code>SpecialOperations.getFiniteStrings</code></td>  <td>API-hygiene</td>          <td>Low</td>    <td>Med</td></tr>
+    <tr><td>4</td><td><code>RegExp</code> default syntax flags</td>         <td>API-default choice</td>  <td>Low</td>    <td><span class="metric warn">High</span></td></tr>
+</table>
+
+<p class="small">
+    All four proposals surfaced from writing tests, not from a code
+    review pass. That's a talking point in its own right: different
+    testing techniques expose different fault classes. See
+    <a href="ai-tools.html">the AI-tools page</a> for how each finding
+    was noticed.
+</p>
+
+<h2>5-mutant analysis (&sect;8)</h2>
+
+<p>
+    &sect;8 additionally requires analysis of &ge;5 surviving mutants
+    from the PIT run. Detailed analysis in
+    <a href="https://github.com/kotz96-lab/TopicsSE_T1/blob/main/docs/mutation-analysis.md">docs/mutation-analysis.md</a>.
+    Summary of the five patterns we identified:
+</p>
+
+<ol>
+    <li><strong>Behavioural-oracle blindness:</strong> mutants change internal state (a determinism flag, a minimize call) without affecting the language. Language-membership tests are blind. Example: <code>BasicOperations.concatenate</code> line 60.</li>
+    <li><strong>Behavioural-oracle blindness (structural):</strong> mutants remove an idempotent optimization (like a skipped <code>minimize()</code> call). Result has bloated state count but same language. Example: <code>RegExp.toAutomaton</code> line 326.</li>
+    <li><strong>Boundary blindness at character-range extremes:</strong> our test inputs use friendly ASCII, so mutants at <code>Character.MAX_VALUE</code> boundaries slip through. Example: <code>Automaton.getStartPoints</code> line 410.</li>
+    <li><strong>Off-by-one in private helpers reachable only via limited public API:</strong> mutating <code>(char)(c+1)</code> to <code>(char)(c-1)</code> in <code>BasicAutomata.atLeast</code> line 158 doesn't fail our two <code>makeInterval</code> tests because they don't sample every boundary value.</li>
+    <li><strong>Output-content blindness:</strong> our <code>toString</code> tests only assert non-null; mutations that scramble the string but still return non-null survive. Example: <code>Transition.appendCharString</code> line 136.</li>
+</ol>
+
+<p>
+    Only one of the five is behaviourally equivalent under our current
+    oracle (the minimize-skip mutant). The other four are killable with
+    targeted extra assertions &mdash; typically one or two new test methods
+    each.
+</p>
+
+</main>
+
+<footer>
+    <a href="differential.html">&larr; Differential Testing</a>
+    &nbsp;&middot;&nbsp;
+    <a href="threats.html">next: Threats to Validity &rarr;</a>
+</footer>
+
+</body>
+</html>
