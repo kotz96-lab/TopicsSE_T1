@@ -142,19 +142,21 @@ student. 17 slides. Follow the "Say" text under each slide.*
 **Say:**
 > "This is the headline experiment. I ran PIT six times — three
 > interaction strengths crossed with two checker strengths, each
-> isolated so the numbers reflect only that combination.
+> isolated so the numbers reflect only that combination. The
+> numbers are mutants detected — either killed or timed-out.
 >
 > Read across the top row: with a weak checker — just 'did it
-> compile and does double-negation round-trip on one input' — going
-> from two-wise to three-wise gains eleven mutants. Three-wise to
-> four-wise gains nothing. Flat.
+> compile and does double-negation round-trip on one input' —
+> going from two-wise to three-wise gains eleven mutants.
+> Three-wise to four-wise gains nothing. Flat.
 >
 > Bottom row: with a stricter checker — five mathematical
 > properties on five inputs each — two-wise to three-wise gains
-> twenty mutants, then plateaus at four-wise. Diminishing returns.
+> eighteen mutants, then plateaus at four-wise. Diminishing
+> returns.
 >
 > Now read down the columns: the gap between weak and strict is
-> fifteen at two-wise, twenty-four at three-wise, twenty-seven at
+> nineteen at two-wise, twenty-six at three-wise, twenty-eight at
 > four-wise. The gap widens as interaction strength grows —
 > meaning the two dimensions compound rather than acting alone."
 
@@ -169,7 +171,7 @@ student. 17 slides. Follow the "Say" text under each slide.*
 > they only fire on a handful of cases. Combining them helps.
 > Even then, going past three-wise adds almost nothing. The
 > improvement is real but modest — about thirteen percent more
-> mutants killed at four-wise compared to the weak checker."
+> mutants detected at four-wise compared to the weak checker."
 
 ---
 

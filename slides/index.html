@@ -414,7 +414,7 @@
 <!-- ============================================================ -->
 <section class="slide">
     <h2>RQ2 experiment &mdash; the 3&times;2 grid</h2>
-    <p style="font-size: 1.5rem;">Six PIT runs. Rows = which checker (weak vs stricter). Columns = which interaction strength.</p>
+    <p style="font-size: 1.5rem;">Six PIT runs. Rows = which checker. Columns = which interaction strength. Numbers are mutants detected (killed or timed-out).</p>
     <table style="font-size: 1.5rem; margin-top: 1rem;">
         <tr>
             <th>Checker per row</th>
@@ -424,21 +424,21 @@
         </tr>
         <tr>
             <td><strong>Weak</strong><br><span style="font-size: 0.95rem; color: var(--fg-muted);">does it run + double-negation on 1 input</span></td>
-            <td class="right">194</td>
-            <td class="right">205</td>
-            <td class="right">204</td>
+            <td class="right">203</td>
+            <td class="right">214</td>
+            <td class="right">214</td>
         </tr>
         <tr>
             <td><strong style="color: var(--accent);">Stricter</strong><br><span style="font-size: 0.95rem; color: var(--fg-muted);">5 math properties &times; 5 inputs each</span></td>
-            <td class="right"><strong style="color: var(--accent);">209</strong></td>
-            <td class="right"><strong style="color: var(--accent);">229</strong></td>
-            <td class="right"><strong style="color: var(--accent);">231</strong></td>
+            <td class="right"><strong style="color: var(--accent);">222</strong></td>
+            <td class="right"><strong style="color: var(--accent);">240</strong></td>
+            <td class="right"><strong style="color: var(--accent);">242</strong></td>
         </tr>
     </table>
     <ul style="font-size: 1.3rem; margin-top: 1.5rem; list-style: none; margin-left: 0;">
         <li>&rarr; <strong>Weak row:</strong> essentially flat. Adding more test rows doesn't help.</li>
         <li>&rarr; <strong>Stricter row:</strong> big jump at 3-wise, then flattens (diminishing returns).</li>
-        <li>&rarr; <strong>Column-by-column:</strong> stricter-vs-weak gap grows (+15, +24, +27).</li>
+        <li>&rarr; <strong>Column-by-column:</strong> stricter-vs-weak gap grows (+19, +26, +28).</li>
     </ul>
     <span class="slide-num">10 / 17</span>
 </section>
@@ -451,9 +451,9 @@
     <div class="callout finding" style="max-width: 950px; font-size: 1.6rem; text-align: left;">
         <p style="font-size: 1.6rem;">More test inputs alone doesn't help &mdash; if the checks are shallow, extra inputs just repeat the same shallow check.</p>
         <p style="margin-top: 1rem; font-size: 1.6rem;">Stricter checks alone doesn't help either &mdash; without varied inputs, they only fire on a few cases.</p>
-        <p style="margin-top: 1rem; font-size: 1.6rem;"><strong>You need both.</strong> And even so, going past 3-wise adds almost nothing (only +2 kills 3&rarr;4).</p>
+        <p style="margin-top: 1rem; font-size: 1.6rem;"><strong>You need both.</strong> And even so, going past 3-wise adds almost nothing (only +2 detections 3&rarr;4).</p>
     </div>
-    <p class="small-note" style="margin-top: 1.5rem;">Real gain is modest (+27 kills at 4-wise = ~13% over the weak checker). Small numbers but a clean, honest signal.</p>
+    <p class="small-note" style="margin-top: 1.5rem;">Real gain is modest (+28 detections at 4-wise = ~13% over the weak checker). Small numbers but a clean, honest signal.</p>
     <span class="slide-num">11 / 17</span>
 </section>
 

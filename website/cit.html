@@ -128,19 +128,29 @@ IF [NestingDepth] = 2 AND [AlternationDepth] = 0 THEN [Quantifier] &lt;&gt; "non
     </tr>
     <tr>
         <td><strong>Weak</strong> (smoke + double-neg, 1 input)</td>
-        <td class="right">194 killed (9.6%)</td>
-        <td class="right">205 killed (10.1%)</td>
-        <td class="right">204 killed (10.0%)</td>
+        <td class="right">203 detected (10.0%)</td>
+        <td class="right">214 detected (10.5%)</td>
+        <td class="right">214 detected (10.5%)</td>
     </tr>
     <tr>
         <td><strong>Strong</strong> (5 metamorphic props, 5 inputs)</td>
-        <td class="right"><strong>209 (10.3%)</strong></td>
-        <td class="right"><strong>229 (11.3%)</strong></td>
-        <td class="right"><strong>231 (11.4%)</strong></td>
+        <td class="right"><strong>222 (10.9%)</strong></td>
+        <td class="right"><strong>240 (11.8%)</strong></td>
+        <td class="right"><strong>242 (11.9%)</strong></td>
     </tr>
 </table>
 
-<h3>Test strength (kills among mutants the tests actually reach)</h3>
+<p class="small">
+    Numbers are <em>detections</em> (killed + timed-out) out of ~2031
+    mutations PIT produced. We report detection rather than raw kill
+    count because with 34&ndash;568 tests to run per mutant, PIT's
+    default timeout classification differs from run to run &mdash;
+    counting killed + timed-out makes the numbers monotonic and
+    reflects the intuition that "a test made the mutant hang" is a
+    real detection signal.
+</p>
+
+<h3>Test strength (detections among mutants the tests actually reach)</h3>
 
 <table>
     <tr>
@@ -151,15 +161,15 @@ IF [NestingDepth] = 2 AND [AlternationDepth] = 0 THEN [Quantifier] &lt;&gt; "non
     </tr>
     <tr>
         <td>Weak</td>
-        <td class="right">40.8%</td>
-        <td class="right">42.5%</td>
-        <td class="right">42.1%</td>
+        <td class="right">42.7%</td>
+        <td class="right">44.4%</td>
+        <td class="right">44.2%</td>
     </tr>
     <tr>
         <td><strong>Strong</strong></td>
-        <td class="right"><strong>43.5%</strong></td>
-        <td class="right"><strong>47.6%</strong></td>
-        <td class="right"><strong>48.0%</strong></td>
+        <td class="right"><strong>46.2%</strong></td>
+        <td class="right"><strong>49.9%</strong></td>
+        <td class="right"><strong>50.3%</strong></td>
     </tr>
 </table>
 
@@ -176,9 +186,9 @@ IF [NestingDepth] = 2 AND [AlternationDepth] = 0 THEN [Quantifier] &lt;&gt; "non
 
 <table>
     <tr><th>Change</th><th>Weak &Delta;</th><th>Strong &Delta;</th></tr>
-    <tr><td>2-wise &rarr; 3-wise</td>            <td>+11 kills</td>  <td>+20 kills</td></tr>
-    <tr><td>3-wise &rarr; 4-wise</td>            <td>&minus;1</td>   <td>+2</td></tr>
-    <tr><td>Weak &rarr; Strong at each strength</td><td colspan="2">+15 (2-wise), +24 (3-wise), +27 (4-wise)</td></tr>
+    <tr><td>2-wise &rarr; 3-wise</td>            <td>+11</td>  <td>+18</td></tr>
+    <tr><td>3-wise &rarr; 4-wise</td>            <td>0</td>    <td>+2</td></tr>
+    <tr><td>Weak &rarr; Strong at each strength</td><td colspan="2">+19 (2-wise), +26 (3-wise), +28 (4-wise)</td></tr>
 </table>
 
 <p>
