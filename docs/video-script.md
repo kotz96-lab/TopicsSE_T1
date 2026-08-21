@@ -42,15 +42,13 @@ student. 17 slides. Follow the "Say" text under each slide.*
 
 ---
 
-## Slide 3 — Repository structure (30 sec)
+## Slide 3 — Repository structure (20 sec)
 
 **Say:**
-> "BRICS is vendored into the repository at a pinned commit, so
-> the surface being evaluated never drifts. Our tests live under
-> six packages: junitsuite for hand-written unit tests, pict for
-> combinatorial ones, metamorphic for property-based, differential
-> for comparison with Java's built-in regex, and infra for testing
-> our own harness."
+> "BRICS is vendored at a pinned commit. Our tests live in six
+> packages: hand-written units, PICT-driven combinatorial,
+> metamorphic properties, differential vs java-util-regex, and
+> infra tests for our own harness."
 
 ---
 
@@ -97,18 +95,36 @@ student. 17 slides. Follow the "Say" text under each slide.*
 
 ---
 
-## Slide 7 — 5 surviving mutants (35 sec)
+## Slide 7 — 5 surviving mutants — with examples (55 sec)
 
 **Say:**
 > "Section eight requires I analyze at least five surviving mutants.
-> I picked five and grouped them by why they survived. The three
-> patterns are: mutations that only change internal state without
-> affecting the language we accept — our tests are blind to those.
-> Mutations at the extreme end of the character range — we test
-> with ASCII so we don't hit them. And mutations that scramble
-> toString output — our tests only check that toString returned
-> something, not what. One of the five is truly equivalent; the
-> other four could be killed with more focused assertions."
+> Here's one concrete example of each of the three failure patterns
+> I found.
+>
+> **Pattern one**: in BasicOperations dot concatenate, PIT wraps a
+> boolean expression in a negation. Where the original computed
+> whether a resulting automaton is deterministic, the mutant now
+> computes the opposite. But this flag is only used later as a
+> hint to skip an optimization — the automaton accepts the exact
+> same strings either way. Our tests check strings; they can't
+> tell.
+>
+> **Pattern two**: in Automaton dot getStartPoints, PIT changes a
+> less-than to a less-than-or-equal. This only misfires when the
+> transition maximum equals Character dot MAX underscore VALUE —
+> the highest possible character. Our test inputs are ASCII, so we
+> never construct a transition that reaches that boundary.
+>
+> **Pattern three**: in Transition dot appendCharString, PIT
+> negates the condition that decides whether a character is
+> printable ASCII. That scrambles what toString outputs. But our
+> toString test only asserts the result isn't null. Garbled text
+> is still non-null, so the test still passes.
+>
+> One of the five is truly equivalent. The other four can be
+> killed by adding assertions on structural state, boundary
+> characters, and string contents respectively."
 
 ---
 
@@ -253,14 +269,12 @@ student. 17 slides. Follow the "Say" text under each slide.*
 
 ---
 
-## Slide 16 — Website (25 sec)
+## Slide 16 — Website (15 sec)
 
 **Say:**
-> "The full report is a static HTML website in the repository
-> under the website folder. Nine pages, one per rubric area,
-> cross-linked to the source code and docs on GitHub. Every
-> number on the site regenerates with two Maven commands — the
-> whole thing is reproducible from a fresh clone."
+> "The full report lives at website slash index dot html — nine
+> pages, one per rubric area. Every number on the site regenerates
+> from a clean clone with two Maven commands."
 
 ---
 
@@ -294,25 +308,26 @@ student. 17 slides. Follow the "Say" text under each slide.*
 |-------|------|---------|
 | 1     | 0:25 | 0:25    |
 | 2     | 0:35 | 1:00    |
-| 3     | 0:30 | 1:30    |
-| 4     | 0:35 | 2:05    |
-| 5     | 0:35 | 2:40    |
-| 6     | 0:40 | 3:20    |
-| 7     | 0:35 | 3:55    |
-| 8     | 0:30 | 4:25    |
-| 9     | 0:30 | 4:55    |
-| 10    | 1:00 | 5:55    |
-| 11    | 0:30 | 6:25    |
-| 12    | 0:30 | 6:55    |
-| 13    | 0:40 | 7:35    |
-| 14    | 0:45 | 8:20    |
-| 15    | 0:35 | 8:55    |
-| 16    | 0:25 | 9:20    |
+| 3     | 0:20 | 1:20    |
+| 4     | 0:35 | 1:55    |
+| 5     | 0:35 | 2:30    |
+| 6     | 0:40 | 3:10    |
+| 7     | 0:55 | 4:05    |
+| 8     | 0:30 | 4:35    |
+| 9     | 0:30 | 5:05    |
+| 10    | 1:00 | 6:05    |
+| 11    | 0:30 | 6:35    |
+| 12    | 0:30 | 7:05    |
+| 13    | 0:40 | 7:45    |
+| 14    | 0:45 | 8:30    |
+| 15    | 0:35 | 9:05    |
+| 16    | 0:15 | 9:20    |
 | 17    | 0:45 | **10:05** |
 
 Target lands around **10 minutes** — right at the top of the 5-10
-allowed range. If you feel tight on time, slides 3 and 8 can each
-be trimmed 5-10 seconds each without losing content.
+allowed range. Slide 7 is the longest (55s) because it walks
+through three code examples; slide 10 is second-longest (1:00)
+because it's the money slide with the 3×2 grid.
 
 ---
 
