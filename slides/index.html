@@ -1,0 +1,594 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>TopicsSE T1 — Video slides</title>
+    <style>
+        :root {
+            --bg:          #0f1419;
+            --bg-panel:    #1a2028;
+            --fg:          #e6e6e6;
+            --fg-muted:    #98a4b2;
+            --accent:      #7bd88f;   /* green */
+            --accent-2:    #ffb454;   /* orange for warn */
+            --accent-3:    #ff6b6b;   /* red for finding */
+            --link:        #7fdbff;
+            --border:      #2a3441;
+            --code-bg:     #14181e;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body {
+            width: 100%;
+            height: 100%;
+            background: var(--bg);
+            color: var(--fg);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            overflow: hidden;
+        }
+
+        /* -------- Slide container -------- */
+        #deck {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+
+        .slide {
+            width: 100vw;
+            height: 100vh;
+            padding: 4vh 6vw;
+            position: absolute;
+            top: 0;
+            left: 0;
+            display: none;
+            flex-direction: column;
+            justify-content: flex-start;
+            overflow: hidden;
+        }
+        .slide.active { display: flex; }
+
+        .slide-num {
+            position: absolute;
+            bottom: 2vh;
+            right: 3vw;
+            font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+            font-size: 0.9rem;
+            color: var(--fg-muted);
+            opacity: 0.5;
+        }
+
+        .slide-caption {
+            position: absolute;
+            bottom: 2vh;
+            left: 3vw;
+            font-size: 0.9rem;
+            color: var(--fg-muted);
+            opacity: 0.6;
+        }
+
+        /* -------- Typography -------- */
+        h1 { font-size: 3.6rem; font-weight: 700; margin-bottom: 1.5rem; line-height: 1.1; }
+        h2 { font-size: 2.4rem; font-weight: 600; margin-bottom: 1.2rem; color: var(--accent); }
+        h3 { font-size: 1.4rem; font-weight: 600; margin-bottom: 0.7rem; color: var(--fg-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+        p  { font-size: 1.4rem; line-height: 1.5; margin-bottom: 1rem; max-width: 90%; }
+        ul, ol { font-size: 1.35rem; line-height: 1.6; margin-left: 2rem; margin-bottom: 1rem; max-width: 90%; }
+        li { margin-bottom: 0.5rem; }
+
+        .subtitle { color: var(--fg-muted); font-size: 1.5rem; margin-top: -0.5rem; margin-bottom: 2rem; }
+
+        /* -------- Code + monospace panels -------- */
+        pre, code {
+            font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+        }
+        code {
+            background: var(--code-bg);
+            padding: 0.1em 0.4em;
+            border-radius: 3px;
+            font-size: 0.9em;
+            border: 1px solid var(--border);
+        }
+        pre {
+            background: var(--code-bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 1.2rem 1.5rem;
+            font-size: 1rem;
+            overflow-x: auto;
+            margin: 0.5rem 0 1rem 0;
+            line-height: 1.4;
+        }
+        pre code { background: transparent; border: none; padding: 0; font-size: 1em; }
+        pre.small { font-size: 0.85rem; }
+
+        .comment { color: var(--fg-muted); }
+        .keyword { color: var(--accent-2); }
+        .string  { color: var(--accent); }
+
+        /* -------- Tables -------- */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 1.2rem;
+            margin: 1rem 0;
+            background: var(--bg-panel);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        th, td { padding: 0.8rem 1.2rem; text-align: left; border-bottom: 1px solid var(--border); }
+        th { background: rgba(0,0,0,0.3); font-weight: 600; color: var(--accent); }
+        tr:last-child td { border-bottom: none; }
+        td.right, th.right { text-align: right; }
+        td.center, th.center { text-align: center; }
+        td strong { color: var(--accent); }
+
+        /* -------- Callouts -------- */
+        .callout {
+            background: var(--bg-panel);
+            border-left: 6px solid var(--accent);
+            padding: 1.5rem 2rem;
+            border-radius: 6px;
+            margin: 1rem 0;
+            font-size: 1.3rem;
+            line-height: 1.5;
+        }
+        .callout.finding { border-left-color: var(--accent-3); }
+        .callout.warn    { border-left-color: var(--accent-2); }
+        .callout strong  { color: var(--accent); }
+        .callout.finding strong { color: var(--accent-3); }
+        .callout.warn strong { color: var(--accent-2); }
+
+        /* -------- Big number panel -------- */
+        .big-number {
+            font-size: 6rem;
+            font-weight: 700;
+            color: var(--accent);
+            text-align: center;
+            line-height: 1.1;
+            margin: 1rem 0;
+        }
+        .big-number .label {
+            display: block;
+            font-size: 1.4rem;
+            color: var(--fg-muted);
+            font-weight: 400;
+            margin-top: 0.5rem;
+        }
+
+        /* -------- Layout helpers -------- */
+        .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 1rem; }
+        .center-content { justify-content: center; text-align: center; align-items: center; }
+        .flex-fill { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+        .small-note { font-size: 1rem; color: var(--fg-muted); margin-top: 1rem; }
+
+        /* -------- Repo path indicator -------- */
+        .filepath {
+            display: inline-block;
+            font-family: ui-monospace, monospace;
+            font-size: 0.95rem;
+            color: var(--fg-muted);
+            background: var(--code-bg);
+            padding: 0.2rem 0.6rem;
+            border-radius: 3px;
+            border: 1px solid var(--border);
+            margin-bottom: 1rem;
+        }
+
+        /* -------- Nav hints -------- */
+        #nav-hint {
+            position: fixed;
+            bottom: 2vh;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.8rem;
+            color: var(--fg-muted);
+            opacity: 0.4;
+        }
+    </style>
+</head>
+<body>
+
+<div id="deck">
+
+<!-- ============================================================ -->
+<!-- SLIDE 1 — Title                                              -->
+<!-- ============================================================ -->
+<section class="slide center-content">
+    <div>
+        <h3 style="color: var(--accent);">TopicsSE — Assignment 1</h3>
+        <h1>Evaluating the BRICS<br>Java Automata Library</h1>
+        <p class="subtitle">An empirical software-engineering study</p>
+    </div>
+    <span class="slide-num">1 / 15</span>
+</section>
+
+<!-- ============================================================ -->
+<!-- SLIDE 2 — What is BRICS + goals                              -->
+<!-- ============================================================ -->
+<section class="slide">
+    <h2>Two goals</h2>
+    <div class="two-col">
+        <div>
+            <h3>What BRICS is</h3>
+            <ul>
+                <li>24-year-old Java library</li>
+                <li>Finite automata + regular expressions</li>
+                <li>Union, intersection, complement, minimization</li>
+                <li>~4,700 lines across 18 classes</li>
+                <li>Commit <code>582d8f3</code></li>
+            </ul>
+        </div>
+        <div>
+            <h3>Assignment asks us to</h3>
+            <ol>
+                <li>Evaluate BRICS itself &mdash; coverage, mutation resistance, design quality</li>
+                <li>Evaluate whether combinatorial interaction testing (CIT / PICT) improves fault detection &mdash; <strong>this is RQ2, and it drives most of the experiment</strong></li>
+            </ol>
+        </div>
+    </div>
+    <span class="slide-num">2 / 15</span>
+</section>
+
+<!-- ============================================================ -->
+<!-- SLIDE 3 — Repo structure                                     -->
+<!-- ============================================================ -->
+<section class="slide">
+    <h2>Repository structure</h2>
+    <p class="subtitle">Vendored BRICS + six test packages</p>
+    <pre>TopicsSE_T1/
+├── src/main/java/dk/brics/automaton/    <span class="comment">← vendored BRICS (18 files, commit 582d8f3)</span>
+├── src/test/java/se/topics/t1/
+│   ├── junitsuite/                       <span class="comment">← 180 hand-written unit tests (§6)</span>
+│   ├── pict/                             <span class="comment">← PICT-driven parameterized tests (§9)</span>
+│   ├── metamorphic/                      <span class="comment">← 18 mathematical property tests (§10)</span>
+│   ├── differential/                     <span class="comment">← vs java.util.regex (§11)</span>
+│   └── infra/                            <span class="comment">← tests for our own harness (§13)</span>
+├── pict/models/regex.pict                <span class="comment">← input-space model</span>
+├── pict/generated/regex-{2,3,4}wise.csv  <span class="comment">← generated combinations</span>
+├── docs/                                 <span class="comment">← SOLID, refactoring, threats, AI log, ...</span>
+└── website/                              <span class="comment">← §15 static HTML report (9 pages)</span>
+</pre>
+    <p class="small-note">1,948 tests total &middot; all passing &middot; reproducible with two Maven commands</p>
+    <span class="slide-num">3 / 15</span>
+    <span class="slide-caption">screenshot: VS Code file tree of the repo</span>
+</section>
+
+<!-- ============================================================ -->
+<!-- SLIDE 4 — Test suite + coverage                              -->
+<!-- ============================================================ -->
+<section class="slide">
+    <h2>Test suite &amp; coverage</h2>
+    <div class="two-col">
+        <div class="flex-fill">
+            <div class="big-number">
+                1,948
+                <span class="label">tests, all passing</span>
+            </div>
+        </div>
+        <div class="flex-fill">
+            <table>
+                <tr><th>Metric</th><th class="right">Value</th></tr>
+                <tr><td>Line coverage</td>       <td class="right"><strong>77.2%</strong></td></tr>
+                <tr><td>Branch coverage</td>     <td class="right">70.6%</td></tr>
+                <tr><td>Method coverage</td>     <td class="right">78.8%</td></tr>
+                <tr><td>Class coverage</td>      <td class="right"><strong>96.2%</strong></td></tr>
+            </table>
+        </div>
+    </div>
+    <p class="small-note">JaCoCo 0.8.12 &middot; JDK Temurin 21 &middot; <code>./mvnw verify</code></p>
+    <span class="slide-num">4 / 15</span>
+    <span class="slide-caption">screenshot: target/site/jacoco/index.html</span>
+</section>
+
+<!-- ============================================================ -->
+<!-- SLIDE 5 — PIT mutation testing                               -->
+<!-- ============================================================ -->
+<section class="slide">
+    <h2>Mutation testing with PIT</h2>
+    <p>PIT generates 2,087 tiny sabotages of BRICS and re-runs our suite against each.</p>
+    <div class="two-col" style="margin-top: 2rem;">
+        <div>
+            <div class="big-number">
+                51%
+                <span class="label">mutation score (1074 / 2087)</span>
+            </div>
+        </div>
+        <div>
+            <div class="big-number">
+                70%
+                <span class="label">test strength (killed / covered)</span>
+            </div>
+        </div>
+    </div>
+    <p class="small-note">This is our baseline against which the CIT experiment is measured.</p>
+    <span class="slide-num">5 / 15</span>
+    <span class="slide-caption">screenshot: target/pit-reports/index.html</span>
+</section>
+
+<!-- ============================================================ -->
+<!-- SLIDE 6 — 5 mutants analyzed                                 -->
+<!-- ============================================================ -->
+<section class="slide">
+    <h2>Analysis of 5 surviving mutants (§8)</h2>
+    <p>Distilled into three failure patterns:</p>
+    <div class="callout">
+        <strong>1. Behavioural-oracle blindness.</strong>
+        Mutants change internal state (a determinism flag, a skipped <code>minimize()</code>) without changing the language.
+        <em>Example: <code>BasicOperations.concatenate</code> line 60.</em>
+    </div>
+    <div class="callout">
+        <strong>2. Boundary blindness.</strong>
+        Mutants misfire at <code>Character.MAX_VALUE</code>; our ASCII inputs miss them.
+        <em>Example: <code>Automaton.getStartPoints</code> line 410.</em>
+    </div>
+    <div class="callout">
+        <strong>3. Output-content blindness.</strong>
+        Mutants scramble <code>toString</code> content; our tests only assert non-null.
+        <em>Example: <code>Transition.appendCharString</code> line 136.</em>
+    </div>
+    <p class="small-note">1 of 5 is behaviourally equivalent; the other 4 are killable with more focused assertions.</p>
+    <span class="slide-num">6 / 15</span>
+</section>
+
+<!-- ============================================================ -->
+<!-- SLIDE 7 — PICT model                                         -->
+<!-- ============================================================ -->
+<section class="slide">
+    <h2>PICT input-space model</h2>
+    <span class="filepath">pict/models/regex.pict</span>
+    <pre class="small"><span class="keyword">Alphabet</span>:         ascii_lower, ascii_alnum, unicode_bmp, single_char
+<span class="keyword">CharClassKind</span>:    single, range, set, negated
+<span class="keyword">Quantifier</span>:       none, star, plus, optional, bounded
+<span class="keyword">AlternationDepth</span>: 0, 1, 2
+<span class="keyword">NestingDepth</span>:     0, 1, 2
+<span class="keyword">Operation</span>:        toAutomaton, determinize, minimize, complement, union, intersection
+<span class="keyword">InputLength</span>:      empty, short, medium
+
+<span class="comment"># Constraints prune structurally-impossible rows</span>
+<span class="keyword">IF</span> [Alphabet] = <span class="string">"single_char"</span> <span class="keyword">THEN</span> [CharClassKind] <span class="keyword">IN</span> {<span class="string">"single"</span>, <span class="string">"set"</span>};
+<span class="keyword">IF</span> [Alphabet] = <span class="string">"single_char"</span> <span class="keyword">THEN</span> [AlternationDepth] <span class="keyword">IN</span> {0, 1};
+<span class="keyword">IF</span> [CharClassKind] = <span class="string">"negated"</span> <span class="keyword">THEN</span> [Alphabet] &lt;&gt; <span class="string">"single_char"</span>;
+<span class="keyword">IF</span> [NestingDepth] = 2 <span class="keyword">AND</span> [AlternationDepth] = 0 <span class="keyword">THEN</span> [Quantifier] &lt;&gt; <span class="string">"none"</span>;
+</pre>
+    <p class="small-note">7 parameters &times; 4 constraints. Full parameter-by-parameter rationale in <code>docs/pict-rationale.md</code>.</p>
+    <span class="slide-num">7 / 15</span>
+</section>
+
+<!-- ============================================================ -->
+<!-- SLIDE 8 — PICT tables generated                              -->
+<!-- ============================================================ -->
+<section class="slide">
+    <h2>Generated tables at 2/3/4-wise</h2>
+    <p>Full cross-product of the 7 parameters would be <strong>12,960 combinations</strong>. PICT reduces:</p>
+    <table style="max-width: 700px; margin-top: 2rem;">
+        <tr>
+            <th>Interaction strength</th>
+            <th class="right">Rows</th>
+            <th class="right">vs full cross-product</th>
+        </tr>
+        <tr><td>2-wise (pairwise)</td> <td class="right"><strong>34</strong></td>  <td class="right">99.7% smaller</td></tr>
+        <tr><td>3-wise</td>            <td class="right"><strong>152</strong></td> <td class="right">98.8% smaller</td></tr>
+        <tr><td>4-wise</td>            <td class="right"><strong>568</strong></td> <td class="right">95.6% smaller</td></tr>
+    </table>
+    <p class="small-note" style="margin-top: 2rem;">Each row is deterministically translated into a concrete BRICS regex + test input, then fed into two parameterized JUnit test classes.</p>
+    <span class="slide-num">8 / 15</span>
+    <span class="slide-caption">screenshot: pict/generated/regex-2wise.csv</span>
+</section>
+
+<!-- ============================================================ -->
+<!-- SLIDE 9 — The 3x2 grid (money slide)                         -->
+<!-- ============================================================ -->
+<section class="slide">
+    <h2>The RQ2 experiment &mdash; 3&times;2 grid</h2>
+    <p>Six PIT runs. Three interaction strengths &times; two oracle strengths. Isolated with PIT's <code>-DincludedGroups=</code> flag.</p>
+    <table style="font-size: 1.4rem; margin-top: 1.5rem;">
+        <tr>
+            <th>Oracle</th>
+            <th class="right">2-wise</th>
+            <th class="right">3-wise</th>
+            <th class="right">4-wise</th>
+        </tr>
+        <tr>
+            <td><strong>Weak</strong><br><span style="font-size: 0.85rem; color: var(--fg-muted);">smoke + double-negation, 1 input</span></td>
+            <td class="right">194</td>
+            <td class="right">205</td>
+            <td class="right">204</td>
+        </tr>
+        <tr>
+            <td><strong style="color: var(--accent);">Strong</strong><br><span style="font-size: 0.85rem; color: var(--fg-muted);">5 metamorphic props &times; 5 inputs</span></td>
+            <td class="right"><strong style="color: var(--accent);">209</strong></td>
+            <td class="right"><strong style="color: var(--accent);">229</strong></td>
+            <td class="right"><strong style="color: var(--accent);">231</strong></td>
+        </tr>
+    </table>
+    <p class="small-note" style="margin-top: 1.5rem;"><em>Read across:</em> weak is flat, strong rises then plateaus (diminishing returns past 3-wise). <em>Read down:</em> strong-vs-weak gap widens as interaction strength grows (+15, +24, +27). <strong style="color: var(--accent);">The two dimensions compound.</strong></p>
+    <span class="slide-num">9 / 15</span>
+</section>
+
+<!-- ============================================================ -->
+<!-- SLIDE 10 — Interpretation                                    -->
+<!-- ============================================================ -->
+<section class="slide center-content">
+    <div class="callout finding" style="max-width: 900px; font-size: 1.5rem;">
+        <p><strong>RQ2: Does CIT improve mutation scores?</strong></p>
+        <p style="margin-top: 1rem;">
+            It depends on the oracle. Interaction strength alone barely helps.
+            Oracle strength alone helps modestly. <strong>Together they compound.</strong>
+            And even the best combination shows diminishing returns past 3-wise.
+        </p>
+    </div>
+    <p class="small-note" style="margin-top: 2rem; max-width: 800px;">Practical takeaway: use 3-wise with a strong oracle. Higher interaction strength alone doesn't pay off; oracle sensitivity is what makes the extra combinations bite.</p>
+    <span class="slide-num">10 / 15</span>
+</section>
+
+<!-- ============================================================ -->
+<!-- SLIDE 11 — Metamorphic properties                            -->
+<!-- ============================================================ -->
+<section class="slide">
+    <h2>Metamorphic testing (§10)</h2>
+    <p><strong>18 mathematical identities</strong> BRICS must respect (rubric requires &ge;10). Sample:</p>
+    <div class="two-col" style="margin-top: 1.5rem;">
+        <div>
+            <ul style="font-size: 1.2rem;">
+                <li>Union commutativity: <code>L(A &cup; B) = L(B &cup; A)</code></li>
+                <li>Double complement: <code>L(&not;&not;A) = L(A)</code></li>
+                <li>De Morgan: <code>L(&not;(A &cup; B)) = L(&not;A &cap; &not;B)</code></li>
+                <li>Minimize preserves language</li>
+                <li>Determinize preserves language</li>
+            </ul>
+        </div>
+        <div>
+            <ul style="font-size: 1.2rem;">
+                <li>Concatenation associativity</li>
+                <li>Union / intersection idempotence</li>
+                <li>Kleene-star idempotence: <code>L((A*)*) = L(A*)</code></li>
+                <li>Regex round-trip: <code>L(parse(pattern.toString())) = L(parse(pattern))</code></li>
+                <li>Prefix-close accepts empty</li>
+            </ul>
+        </div>
+    </div>
+    <div class="callout" style="margin-top: 1.5rem;">
+        <strong>All 18 hold.</strong> Positive finding &mdash; BRICS' regular-language algebra is correctly implemented on the operations we exercised.
+    </div>
+    <span class="slide-num">11 / 15</span>
+</section>
+
+<!-- ============================================================ -->
+<!-- SLIDE 12 — Differential test finding                         -->
+<!-- ============================================================ -->
+<section class="slide">
+    <h2>Differential: BRICS vs <code>java.util.regex</code> (§11)</h2>
+    <p>Compatible-subset patterns agree; five characters silently diverge.</p>
+    <div class="callout finding" style="margin-top: 1rem;">
+        <strong>Finding: BRICS reserves 5 default metacharacters that Java treats as literals.</strong>
+    </div>
+    <table style="margin-top: 1rem;">
+        <tr>
+            <th>Char</th>
+            <th>BRICS meaning</th>
+            <th>Java / PCRE / POSIX meaning</th>
+        </tr>
+        <tr><td><code>@</code></td>       <td>ANYSTRING (matches everything)</td>       <td>literal <code>@</code></td></tr>
+        <tr><td><code>#</code></td>       <td>EMPTY (matches nothing)</td>              <td>literal <code>#</code></td></tr>
+        <tr><td><code>~</code></td>       <td>complement of following expression</td>   <td>literal <code>~</code></td></tr>
+        <tr><td><code>&amp;</code></td>   <td>intersection of two expressions</td>      <td>literal <code>&amp;</code></td></tr>
+        <tr><td><code>&lt;name&gt;</code></td><td>reference to a named automaton</td>   <td>literals</td></tr>
+    </table>
+    <p class="small-note">Someone porting a regex between engines gets silently wrong matching &mdash; no error, no warning. Direct implication for refactoring proposal 4.</p>
+    <span class="slide-num">12 / 15</span>
+</section>
+
+<!-- ============================================================ -->
+<!-- SLIDE 13 — SOLID + 4 refactoring proposals                   -->
+<!-- ============================================================ -->
+<section class="slide">
+    <h2>Software design evaluation (§12)</h2>
+    <div class="two-col" style="margin-top: 1rem;">
+        <div>
+            <h3>SOLID verdicts</h3>
+            <ul style="font-size: 1.15rem;">
+                <li><strong>S:</strong> partially violated (Automaton is a god-class, 78 public methods)</li>
+                <li><strong>O:</strong> closed &mdash; no interfaces to plug into</li>
+                <li><strong>L:</strong> vacuous &mdash; no inheritance to violate</li>
+                <li><strong>I:</strong> vacuously satisfied</li>
+                <li><strong>D:</strong> violated &mdash; but arguably acceptable for a library</li>
+            </ul>
+        </div>
+        <div>
+            <h3>4 refactoring proposals</h3>
+            <ol style="font-size: 1.15rem;">
+                <li>Fix <code>Datatypes.exists()</code> NPE bug</li>
+                <li>Clarify <code>isTotal()</code> semantic vs structural</li>
+                <li>Replace <code>getFiniteStrings</code> null-return with exception or <code>Optional</code></li>
+                <li>Flip <code>RegExp</code> default flags to literal-first (interop fix)</li>
+            </ol>
+        </div>
+    </div>
+    <p class="small-note" style="margin-top: 2rem;">All 4 proposals surfaced organically from writing tests, not from a code review pass. Different testing techniques expose different fault classes.</p>
+    <span class="slide-num">13 / 15</span>
+</section>
+
+<!-- ============================================================ -->
+<!-- SLIDE 14 — Website                                           -->
+<!-- ============================================================ -->
+<section class="slide center-content">
+    <h2>Full report &mdash; static HTML website (§15)</h2>
+    <p style="text-align: center; max-width: 700px; margin: 1rem auto;">
+        Nine pages, one per rubric area, cross-linked to the source code and docs.
+        All numbers reproducible from a fresh clone with two Maven commands.
+    </p>
+    <pre style="max-width: 750px; margin: 2rem auto;">website/
+├── index.html              <span class="comment">← overview + headline numbers</span>
+├── junit.html              <span class="comment">← §6 / §7 test suite + coverage</span>
+├── cit.html                <span class="comment">← §9 CIT experiment (the 3×2 grid)</span>
+├── metamorphic.html        <span class="comment">← §10 18 properties</span>
+├── differential.html       <span class="comment">← §11 vs java.util.regex + findings</span>
+├── design.html             <span class="comment">← §12 SOLID + refactoring</span>
+├── threats.html            <span class="comment">← §21 threats to validity</span>
+├── reproducibility.html    <span class="comment">← §16 artifact checklist</span>
+├── ai-tools.html           <span class="comment">← §21 AI usage disclosure</span>
+└── style.css</pre>
+    <span class="slide-num">14 / 15</span>
+    <span class="slide-caption">screenshot: website/index.html in a browser</span>
+</section>
+
+<!-- ============================================================ -->
+<!-- SLIDE 15 — Conclusions                                       -->
+<!-- ============================================================ -->
+<section class="slide">
+    <h2>Conclusions</h2>
+    <div class="callout" style="margin-top: 1rem;">
+        <strong>RQ2 answered empirically:</strong> CIT + strong oracle helps up to 3-wise; either dimension alone doesn't.
+    </div>
+    <div class="callout" style="margin-top: 1rem;">
+        <strong>Real defects found:</strong> 1 NPE bug, 2 API-clarity issues, 1 interoperability landmine &mdash; all from test-writing friction.
+    </div>
+    <div class="callout" style="margin-top: 1rem;">
+        <strong>BRICS' algebra is correct:</strong> all 18 metamorphic properties hold.
+    </div>
+    <div class="callout" style="margin-top: 1rem;">
+        <strong>Reproducible:</strong> every number regenerates with two commands; CSVs are byte-identical thanks to pinned seed.
+    </div>
+    <p class="small-note" style="margin-top: 2rem;">Limitations: single BRICS commit, <code>Datatypes.buildAll</code> unreachable without shipping a Unicode data file, and the "strong oracle" is one specific choice of five metamorphic properties &mdash; a different strong oracle might land differently.</p>
+    <p style="text-align: center; margin-top: 2rem; font-size: 1.3rem; color: var(--fg-muted);">
+        Thanks for watching.<br>
+        Source: <code>github.com/kotz96-lab/TopicsSE_T1</code>
+    </p>
+    <span class="slide-num">15 / 15</span>
+</section>
+
+</div>
+
+<div id="nav-hint">← → arrow keys to navigate &middot; F11 for fullscreen &middot; F to toggle nav hint</div>
+
+<script>
+    let slides = document.querySelectorAll('.slide');
+    let current = 0;
+    slides[current].classList.add('active');
+
+    function go(delta) {
+        slides[current].classList.remove('active');
+        current = Math.max(0, Math.min(slides.length - 1, current + delta));
+        slides[current].classList.add('active');
+    }
+
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') { e.preventDefault(); go(1); }
+        else if (e.key === 'ArrowLeft' || e.key === 'PageUp' || e.key === 'Backspace') { e.preventDefault(); go(-1); }
+        else if (e.key === 'Home') { e.preventDefault(); go(-current); }
+        else if (e.key === 'End')  { e.preventDefault(); go(slides.length - 1 - current); }
+        else if (e.key === 'f' || e.key === 'F') {
+            let hint = document.getElementById('nav-hint');
+            hint.style.display = (hint.style.display === 'none') ? 'block' : 'none';
+        }
+    });
+
+    // Click on right half → next; left half → prev
+    document.addEventListener('click', function (e) {
+        if (e.clientX > window.innerWidth / 2) go(1);
+        else go(-1);
+    });
+</script>
+
+</body>
+</html>
