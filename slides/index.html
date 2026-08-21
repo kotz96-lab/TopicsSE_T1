@@ -341,31 +341,27 @@
 </section>
 
 <!-- ============================================================ -->
-<!-- SLIDE 7 — 5 mutants analyzed — with concrete examples        -->
+<!-- SLIDE 7 — 5 mutants analyzed                                 -->
 <!-- ============================================================ -->
 <section class="slide">
-    <h2>5 surviving mutants &mdash; concrete examples</h2>
-    <p style="font-size: 1.3rem;">Of the 456 mutants that slipped past our tests, one example per failure pattern:</p>
-
-    <h3 style="margin-top: 1rem; color: var(--accent);">Pattern 1 &mdash; mutation changes an internal flag, not the language</h3>
-    <pre style="font-size: 0.95rem; margin: 0.4rem 0;"><span class="comment">// BasicOperations.java:60</span>
-<span class="comment">-</span> boolean deterministic = a1.isSingleton() && a2.isDeterministic();
-<span class="comment">+</span> boolean deterministic = <span style="color: var(--accent-3);">!(</span>a1.isSingleton() && a2.isDeterministic()<span style="color: var(--accent-3);">)</span>;</pre>
-    <p style="font-size: 1.15rem; color: var(--fg-muted); margin: 0.3rem 0;">The flag is a hint used to skip a redundant <code>determinize()</code>. Skipping it or running it produces the same accepted strings, so our language-membership tests can't tell.</p>
-
-    <h3 style="margin-top: 1rem; color: var(--accent);">Pattern 2 &mdash; boundary at the highest character value</h3>
-    <pre style="font-size: 0.95rem; margin: 0.4rem 0;"><span class="comment">// Automaton.java:410  &mdash; inside getStartPoints()</span>
-<span class="comment">-</span> if (t.max <span style="color: var(--accent);">&lt;</span> Character.MAX_VALUE)
-<span class="comment">+</span> if (t.max <span style="color: var(--accent-3);">&lt;=</span> Character.MAX_VALUE)</pre>
-    <p style="font-size: 1.15rem; color: var(--fg-muted); margin: 0.3rem 0;">Only misfires when <code>t.max == Character.MAX_VALUE</code>. Our test inputs use ASCII (<code>a</code>, <code>b</code>, digits) &mdash; nowhere near the top of the char range.</p>
-
-    <h3 style="margin-top: 1rem; color: var(--accent);">Pattern 3 &mdash; output text scrambled, we don't check text</h3>
-    <pre style="font-size: 0.95rem; margin: 0.4rem 0;"><span class="comment">// Transition.java:136  &mdash; feeds toString()</span>
-<span class="comment">-</span> if (c &gt;= 0x21 && c &lt;= 0x7e && c != '\\' && c != '"')
-<span class="comment">+</span> if (<span style="color: var(--accent-3);">!(</span>c &gt;= 0x21 && c &lt;= 0x7e && c != '\\' && c != '"'<span style="color: var(--accent-3);">)</span>)</pre>
-    <p style="font-size: 1.15rem; color: var(--fg-muted); margin: 0.3rem 0;">Our test says <code>assertNotNull(transition.toString())</code>. Mutation makes it print garbled text &mdash; still non-null, so still passes.</p>
-
-    <p class="small-note" style="margin-top: 0.7rem;">1 of the 5 is truly equivalent (Pattern 1 &mdash; no observable difference exists). The other 4 are killable with focused assertions.</p>
+    <h2>5 surviving mutants (§8)</h2>
+    <p style="font-size: 1.5rem;">Of the 456 that slipped past our tests, I picked 5 and grouped them by <em>why</em> they slipped:</p>
+    <table style="font-size: 1.3rem; margin-top: 1rem;">
+        <tr><th>Why it survived</th><th>Where</th></tr>
+        <tr>
+            <td><strong>1. Internal-only change</strong> &mdash; mutation changes a flag but the language stays the same</td>
+            <td><code>BasicOperations.concatenate:60</code></td>
+        </tr>
+        <tr>
+            <td><strong>2. Character-boundary blind</strong> &mdash; mutation fires at <code>Character.MAX_VALUE</code>, our ASCII inputs never hit it</td>
+            <td><code>Automaton.getStartPoints:410</code></td>
+        </tr>
+        <tr>
+            <td><strong>3. Output-string blind</strong> &mdash; mutation scrambles <code>toString</code>, our tests only check non-null</td>
+            <td><code>Transition.appendCharString:136</code></td>
+        </tr>
+    </table>
+    <p class="small-note">1 of the 5 is truly equivalent (same behaviour, unkillable). The other 4 are killable with more focused assertions.</p>
     <span class="slide-num">7 / 17</span>
 </section>
 

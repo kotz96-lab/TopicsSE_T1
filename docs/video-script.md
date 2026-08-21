@@ -95,36 +95,19 @@ student. 17 slides. Follow the "Say" text under each slide.*
 
 ---
 
-## Slide 7 — 5 surviving mutants — with examples (55 sec)
+## Slide 7 — 5 surviving mutants (35 sec)
 
 **Say:**
-> "Section eight requires I analyze at least five surviving mutants.
-> Here's one concrete example of each of the three failure patterns
-> I found.
->
-> **Pattern one**: in BasicOperations dot concatenate, PIT wraps a
-> boolean expression in a negation. Where the original computed
-> whether a resulting automaton is deterministic, the mutant now
-> computes the opposite. But this flag is only used later as a
-> hint to skip an optimization — the automaton accepts the exact
-> same strings either way. Our tests check strings; they can't
-> tell.
->
-> **Pattern two**: in Automaton dot getStartPoints, PIT changes a
-> less-than to a less-than-or-equal. This only misfires when the
-> transition maximum equals Character dot MAX underscore VALUE —
-> the highest possible character. Our test inputs are ASCII, so we
-> never construct a transition that reaches that boundary.
->
-> **Pattern three**: in Transition dot appendCharString, PIT
-> negates the condition that decides whether a character is
-> printable ASCII. That scrambles what toString outputs. But our
-> toString test only asserts the result isn't null. Garbled text
-> is still non-null, so the test still passes.
->
-> One of the five is truly equivalent. The other four can be
-> killed by adding assertions on structural state, boundary
-> characters, and string contents respectively."
+> "Section eight requires I analyze at least five surviving
+> mutants. I picked five and grouped them by why they survived.
+> The three patterns are: mutations that only change internal
+> state without affecting the language we accept — our tests are
+> blind to those. Mutations at the extreme end of the character
+> range — we test with ASCII so we don't hit them. And mutations
+> that scramble toString output — our tests only check that
+> toString returned something, not what. One of the five is truly
+> equivalent; the other four could be killed with more focused
+> assertions."
 
 ---
 
@@ -312,17 +295,17 @@ student. 17 slides. Follow the "Say" text under each slide.*
 | 4     | 0:35 | 1:55    |
 | 5     | 0:35 | 2:30    |
 | 6     | 0:40 | 3:10    |
-| 7     | 0:55 | 4:05    |
-| 8     | 0:30 | 4:35    |
-| 9     | 0:30 | 5:05    |
-| 10    | 1:00 | 6:05    |
-| 11    | 0:30 | 6:35    |
-| 12    | 0:30 | 7:05    |
-| 13    | 0:40 | 7:45    |
-| 14    | 0:45 | 8:30    |
-| 15    | 0:35 | 9:05    |
-| 16    | 0:15 | 9:20    |
-| 17    | 0:45 | **10:05** |
+| 7     | 0:35 | 3:45    |
+| 8     | 0:30 | 4:15    |
+| 9     | 0:30 | 4:45    |
+| 10    | 1:00 | 5:45    |
+| 11    | 0:30 | 6:15    |
+| 12    | 0:30 | 6:45    |
+| 13    | 0:40 | 7:25    |
+| 14    | 0:45 | 8:10    |
+| 15    | 0:35 | 8:45    |
+| 16    | 0:15 | 9:00    |
+| 17    | 0:45 | **9:45** |
 
 Target lands around **10 minutes** — right at the top of the 5-10
 allowed range. Slide 7 is the longest (55s) because it walks
