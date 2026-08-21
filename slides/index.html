@@ -68,12 +68,12 @@
         }
 
         /* -------- Typography -------- */
-        h1 { font-size: 3.6rem; font-weight: 700; margin-bottom: 1.5rem; line-height: 1.1; }
-        h2 { font-size: 2.4rem; font-weight: 600; margin-bottom: 1.2rem; color: var(--accent); }
-        h3 { font-size: 1.4rem; font-weight: 600; margin-bottom: 0.7rem; color: var(--fg-muted); text-transform: uppercase; letter-spacing: 0.05em; }
-        p  { font-size: 1.4rem; line-height: 1.5; margin-bottom: 1rem; max-width: 90%; }
-        ul, ol { font-size: 1.35rem; line-height: 1.6; margin-left: 2rem; margin-bottom: 1rem; max-width: 90%; }
-        li { margin-bottom: 0.5rem; }
+        h1 { font-size: 4rem; font-weight: 700; margin-bottom: 1.5rem; line-height: 1.1; }
+        h2 { font-size: 2.8rem; font-weight: 600; margin-bottom: 1.5rem; color: var(--accent); }
+        h3 { font-size: 1.6rem; font-weight: 600; margin-bottom: 0.7rem; color: var(--fg-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+        p  { font-size: 1.7rem; line-height: 1.5; margin-bottom: 1rem; max-width: 90%; }
+        ul, ol { font-size: 1.6rem; line-height: 1.6; margin-left: 2rem; margin-bottom: 1rem; max-width: 90%; }
+        li { margin-bottom: 0.6rem; }
 
         .subtitle { color: var(--fg-muted); font-size: 1.5rem; margin-top: -0.5rem; margin-bottom: 2rem; }
 
@@ -109,13 +109,13 @@
         table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 1.2rem;
+            font-size: 1.4rem;
             margin: 1rem 0;
             background: var(--bg-panel);
             border-radius: 6px;
             overflow: hidden;
         }
-        th, td { padding: 0.8rem 1.2rem; text-align: left; border-bottom: 1px solid var(--border); }
+        th, td { padding: 0.9rem 1.3rem; text-align: left; border-bottom: 1px solid var(--border); }
         th { background: rgba(0,0,0,0.3); font-weight: 600; color: var(--accent); }
         tr:last-child td { border-bottom: none; }
         td.right, th.right { text-align: right; }
@@ -129,7 +129,7 @@
             padding: 1.5rem 2rem;
             border-radius: 6px;
             margin: 1rem 0;
-            font-size: 1.3rem;
+            font-size: 1.5rem;
             line-height: 1.5;
         }
         .callout.finding { border-left-color: var(--accent-3); }
@@ -159,7 +159,7 @@
         .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 1rem; }
         .center-content { justify-content: center; text-align: center; align-items: center; }
         .flex-fill { flex: 1; display: flex; flex-direction: column; justify-content: center; }
-        .small-note { font-size: 1rem; color: var(--fg-muted); margin-top: 1rem; }
+        .small-note { font-size: 1.2rem; color: var(--fg-muted); margin-top: 1rem; }
 
         /* -------- Repo path indicator -------- */
         .filepath {
@@ -199,7 +199,7 @@
         <h1>Evaluating the BRICS<br>Java Automata Library</h1>
         <p class="subtitle">An empirical software-engineering study</p>
     </div>
-    <span class="slide-num">1 / 15</span>
+    <span class="slide-num">1 / 17</span>
 </section>
 
 <!-- ============================================================ -->
@@ -225,7 +225,7 @@
             </ol>
         </div>
     </div>
-    <span class="slide-num">2 / 15</span>
+    <span class="slide-num">2 / 17</span>
 </section>
 
 <!-- ============================================================ -->
@@ -248,7 +248,7 @@
 └── website/                              <span class="comment">← §15 static HTML report (9 pages)</span>
 </pre>
     <p class="small-note">1,948 tests, all passing, two Maven commands to reproduce.</p>
-    <span class="slide-num">3 / 15</span>
+    <span class="slide-num">3 / 17</span>
     <span class="slide-caption">screenshot: VS Code file tree of the repo</span>
 </section>
 
@@ -275,7 +275,7 @@
         </div>
     </div>
     <p class="small-note">JaCoCo 0.8.12 &middot; JDK Temurin 21 &middot; <code>./mvnw verify</code></p>
-    <span class="slide-num">4 / 15</span>
+    <span class="slide-num">4 / 17</span>
     <span class="slide-caption">screenshot: target/site/jacoco/index.html</span>
 </section>
 
@@ -300,32 +300,69 @@
         </div>
     </div>
     <p class="small-note">Baseline for the CIT experiment.</p>
-    <span class="slide-num">5 / 15</span>
+    <span class="slide-num">5 / 17</span>
     <span class="slide-caption">screenshot: target/pit-reports/index.html</span>
 </section>
 
 <!-- ============================================================ -->
-<!-- SLIDE 6 — 5 mutants analyzed                                 -->
+<!-- SLIDE 6 — Test progression + mutation score                  -->
 <!-- ============================================================ -->
 <section class="slide">
-    <h2>5 surviving mutants (§8) &mdash; three patterns</h2>
-    <table style="font-size: 1.15rem;">
-        <tr><th>Pattern</th><th>Where</th></tr>
+    <h2>Adding tests, tracking the score</h2>
+    <table style="font-size: 1.5rem;">
         <tr>
-            <td><strong>1.</strong> Internal-state change, language preserved</td>
-            <td><code>BasicOperations.concatenate:60</code>, <code>RegExp.toAutomaton:326</code></td>
+            <th>Stage</th>
+            <th class="right">Tests</th>
+            <th class="right">Mutation score</th>
         </tr>
         <tr>
-            <td><strong>2.</strong> Boundary at <code>Character.MAX_VALUE</code>, our ASCII inputs miss</td>
-            <td><code>Automaton.getStartPoints:410</code>, <code>BasicAutomata.atLeast:158</code></td>
+            <td>Empty (SmokeTest only)</td>
+            <td class="right">1</td>
+            <td class="right">~0%</td>
         </tr>
         <tr>
-            <td><strong>3.</strong> <code>toString</code> content scrambled, we only check non-null</td>
+            <td>+ hand-written suite</td>
+            <td class="right">181</td>
+            <td class="right"><strong style="color: var(--accent);">51.5%</strong></td>
+        </tr>
+        <tr>
+            <td>+ weak PICT tests (2/3/4-wise)</td>
+            <td class="right">934</td>
+            <td class="right">51.4% <span class="comment">(no gain)</span></td>
+        </tr>
+        <tr>
+            <td>+ metamorphic + differential + infra</td>
+            <td class="right">1948</td>
+            <td class="right">51% aggregate</td>
+        </tr>
+    </table>
+    <p class="small-note" style="margin-top: 1.5rem;">The hand-written suite does the heavy lifting. PICT alone adds nothing measurable with a weak oracle &mdash; hence the §9 experiment on the next slides.</p>
+    <span class="slide-num">6 / 17</span>
+</section>
+
+<!-- ============================================================ -->
+<!-- SLIDE 7 — 5 mutants analyzed                                 -->
+<!-- ============================================================ -->
+<section class="slide">
+    <h2>5 surviving mutants (§8)</h2>
+    <p style="font-size: 1.5rem;">Of the 456 that slipped past our tests, I picked 5 and grouped them by <em>why</em> they slipped:</p>
+    <table style="font-size: 1.3rem; margin-top: 1rem;">
+        <tr><th>Why it survived</th><th>Where</th></tr>
+        <tr>
+            <td><strong>1. Internal-only change</strong> &mdash; mutation changes a flag but the language stays the same</td>
+            <td><code>BasicOperations.concatenate:60</code></td>
+        </tr>
+        <tr>
+            <td><strong>2. Character-boundary blind</strong> &mdash; mutation fires at <code>Character.MAX_VALUE</code>, our ASCII inputs never hit it</td>
+            <td><code>Automaton.getStartPoints:410</code></td>
+        </tr>
+        <tr>
+            <td><strong>3. Output-string blind</strong> &mdash; mutation scrambles <code>toString</code>, our tests only check non-null</td>
             <td><code>Transition.appendCharString:136</code></td>
         </tr>
     </table>
-    <p class="small-note">1 of 5 is behaviourally equivalent. Other 4 killable with focused assertions.</p>
-    <span class="slide-num">6 / 15</span>
+    <p class="small-note">1 of the 5 is truly equivalent (same behaviour, unkillable). The other 4 are killable with more focused assertions.</p>
+    <span class="slide-num">7 / 17</span>
 </section>
 
 <!-- ============================================================ -->
@@ -349,7 +386,7 @@
 <span class="keyword">IF</span> [NestingDepth] = 2 <span class="keyword">AND</span> [AlternationDepth] = 0 <span class="keyword">THEN</span> [Quantifier] &lt;&gt; <span class="string">"none"</span>;
 </pre>
     <p class="small-note">7 parameters &times; 4 constraints. Full parameter-by-parameter rationale in <code>docs/pict-rationale.md</code>.</p>
-    <span class="slide-num">7 / 15</span>
+    <span class="slide-num">8 / 17</span>
 </section>
 
 <!-- ============================================================ -->
@@ -357,19 +394,19 @@
 <!-- ============================================================ -->
 <section class="slide">
     <h2>Generated tables at 2/3/4-wise</h2>
-    <p>Full cross-product of the 7 parameters would be <strong>12,960 combinations</strong>. PICT reduces:</p>
-    <table style="max-width: 700px; margin-top: 2rem;">
+    <p>Testing <em>every</em> combination of all 7 parameters = <strong>12,960 tests</strong>. PICT picks a smaller subset that still covers every <em>pair</em> (or triple, or quadruple) of values at least once:</p>
+    <table style="max-width: 800px; margin-top: 1.5rem;">
         <tr>
             <th>Interaction strength</th>
-            <th class="right">Rows</th>
-            <th class="right">vs full cross-product</th>
+            <th class="right">Rows PICT generates</th>
+            <th class="right">Reduction</th>
         </tr>
-        <tr><td>2-wise (pairwise)</td> <td class="right"><strong>34</strong></td>  <td class="right">99.7% smaller</td></tr>
-        <tr><td>3-wise</td>            <td class="right"><strong>152</strong></td> <td class="right">98.8% smaller</td></tr>
-        <tr><td>4-wise</td>            <td class="right"><strong>568</strong></td> <td class="right">95.6% smaller</td></tr>
+        <tr><td>2-wise (every <em>pair</em>)</td>       <td class="right"><strong>34</strong></td>  <td class="right">99.7% smaller</td></tr>
+        <tr><td>3-wise (every <em>triple</em>)</td>    <td class="right"><strong>152</strong></td> <td class="right">98.8% smaller</td></tr>
+        <tr><td>4-wise (every <em>quadruple</em>)</td> <td class="right"><strong>568</strong></td> <td class="right">95.6% smaller</td></tr>
     </table>
-    <p class="small-note" style="margin-top: 2rem;">Each row is deterministically translated into a concrete BRICS regex + test input, then fed into two parameterized JUnit test classes.</p>
-    <span class="slide-num">8 / 15</span>
+    <p class="small-note" style="margin-top: 2rem;">Each row is turned into a concrete regex + test input and fed to JUnit.</p>
+    <span class="slide-num">9 / 17</span>
     <span class="slide-caption">screenshot: pict/generated/regex-2wise.csv</span>
 </section>
 
@@ -377,55 +414,58 @@
 <!-- SLIDE 9 — The 3x2 grid (money slide)                         -->
 <!-- ============================================================ -->
 <section class="slide">
-    <h2>The RQ2 experiment &mdash; 3&times;2 grid</h2>
-    <p>Six PIT runs. Three interaction strengths &times; two oracle strengths. Isolated with PIT's <code>-DincludedGroups=</code> flag.</p>
-    <table style="font-size: 1.4rem; margin-top: 1.5rem;">
+    <h2>RQ2 experiment &mdash; the 3&times;2 grid</h2>
+    <p style="font-size: 1.5rem;">Six PIT runs. Rows = which checker (weak vs stricter). Columns = which interaction strength.</p>
+    <table style="font-size: 1.5rem; margin-top: 1rem;">
         <tr>
-            <th>Oracle</th>
-            <th class="right">2-wise</th>
-            <th class="right">3-wise</th>
-            <th class="right">4-wise</th>
+            <th>Checker per row</th>
+            <th class="right">2-wise (34)</th>
+            <th class="right">3-wise (152)</th>
+            <th class="right">4-wise (568)</th>
         </tr>
         <tr>
-            <td><strong>Weak</strong><br><span style="font-size: 0.85rem; color: var(--fg-muted);">smoke + double-negation, 1 input</span></td>
+            <td><strong>Weak</strong><br><span style="font-size: 0.95rem; color: var(--fg-muted);">does it run + double-negation on 1 input</span></td>
             <td class="right">194</td>
             <td class="right">205</td>
             <td class="right">204</td>
         </tr>
         <tr>
-            <td><strong style="color: var(--accent);">Strong</strong><br><span style="font-size: 0.85rem; color: var(--fg-muted);">5 metamorphic props &times; 5 inputs</span></td>
+            <td><strong style="color: var(--accent);">Stricter</strong><br><span style="font-size: 0.95rem; color: var(--fg-muted);">5 math properties &times; 5 inputs each</span></td>
             <td class="right"><strong style="color: var(--accent);">209</strong></td>
             <td class="right"><strong style="color: var(--accent);">229</strong></td>
             <td class="right"><strong style="color: var(--accent);">231</strong></td>
         </tr>
     </table>
-    <p class="small-note" style="margin-top: 1.5rem;"><em>Across:</em> weak flat; strong rises then plateaus. <em>Down:</em> weak-vs-strong gap widens with strength (+15, +24, +27). Two dimensions compound.</p>
-    <span class="slide-num">9 / 15</span>
+    <ul style="font-size: 1.3rem; margin-top: 1.5rem; list-style: none; margin-left: 0;">
+        <li>&rarr; <strong>Weak row:</strong> essentially flat. Adding more test rows doesn't help.</li>
+        <li>&rarr; <strong>Stricter row:</strong> big jump at 3-wise, then flattens (diminishing returns).</li>
+        <li>&rarr; <strong>Column-by-column:</strong> stricter-vs-weak gap grows (+15, +24, +27).</li>
+    </ul>
+    <span class="slide-num">10 / 17</span>
 </section>
 
 <!-- ============================================================ -->
 <!-- SLIDE 10 — Interpretation                                    -->
 <!-- ============================================================ -->
 <section class="slide center-content">
-    <h2 style="text-align: center;">RQ2 &mdash; what the data says</h2>
-    <div class="callout finding" style="max-width: 900px; font-size: 1.6rem; text-align: left;">
-        Interaction strength alone: flat.<br>
-        Oracle strength alone: modest gain.<br>
-        <strong>Together they compound. Diminishing returns past 3-wise.</strong>
+    <h2 style="text-align: center;">Answer to RQ2, plain English</h2>
+    <div class="callout finding" style="max-width: 950px; font-size: 1.6rem; text-align: left;">
+        <p style="font-size: 1.6rem;">More test inputs alone doesn't help &mdash; if the checks are shallow, extra inputs just repeat the same shallow check.</p>
+        <p style="margin-top: 1rem; font-size: 1.6rem;">Stricter checks alone doesn't help either &mdash; without varied inputs, they only fire on a few cases.</p>
+        <p style="margin-top: 1rem; font-size: 1.6rem;"><strong>You need both.</strong> And even so, going past 3-wise adds almost nothing (only +2 kills 3&rarr;4).</p>
     </div>
-    <p class="small-note" style="margin-top: 2rem;">Sweet spot for this codebase: strong oracle at 3-wise.</p>
-    <span class="slide-num">10 / 15</span>
+    <p class="small-note" style="margin-top: 1.5rem;">Real gain is modest (+27 kills at 4-wise = ~13% over the weak checker). Small numbers but a clean, honest signal.</p>
+    <span class="slide-num">11 / 17</span>
 </section>
 
 <!-- ============================================================ -->
 <!-- SLIDE 11 — Metamorphic properties                            -->
 <!-- ============================================================ -->
 <section class="slide">
-    <h2>Metamorphic testing (§10)</h2>
-    <p><strong>18 mathematical identities</strong> BRICS must respect (rubric requires &ge;10). Sample:</p>
-    <div class="two-col" style="margin-top: 1.5rem;">
+    <h2>Metamorphic testing (§10) &mdash; 18 properties</h2>
+    <div class="two-col" style="margin-top: 1rem;">
         <div>
-            <ul style="font-size: 1.2rem;">
+            <ul style="font-size: 1.4rem;">
                 <li>Union commutativity: <code>L(A &cup; B) = L(B &cup; A)</code></li>
                 <li>Double complement: <code>L(&not;&not;A) = L(A)</code></li>
                 <li>De Morgan: <code>L(&not;(A &cup; B)) = L(&not;A &cap; &not;B)</code></li>
@@ -434,19 +474,20 @@
             </ul>
         </div>
         <div>
-            <ul style="font-size: 1.2rem;">
+            <ul style="font-size: 1.4rem;">
                 <li>Concatenation associativity</li>
                 <li>Union / intersection idempotence</li>
                 <li>Kleene-star idempotence: <code>L((A*)*) = L(A*)</code></li>
-                <li>Regex round-trip: <code>L(parse(pattern.toString())) = L(parse(pattern))</code></li>
+                <li>Regex round-trip preserves language</li>
                 <li>Prefix-close accepts empty</li>
             </ul>
         </div>
     </div>
-    <div class="callout" style="margin-top: 1.5rem;">
+    <p style="font-size: 1.4rem; margin-top: 1.5rem;">Each property is tested on a small set of witness automata &mdash; typically 2&ndash;3 per property. Full list &amp; source on the website.</p>
+    <div class="callout" style="margin-top: 1rem;">
         <strong>All 18 hold.</strong> BRICS' regular-language algebra is correct on what we tested.
     </div>
-    <span class="slide-num">11 / 15</span>
+    <span class="slide-num">12 / 17</span>
 </section>
 
 <!-- ============================================================ -->
@@ -454,54 +495,71 @@
 <!-- ============================================================ -->
 <section class="slide">
     <h2>Differential: BRICS vs <code>java.util.regex</code> (§11)</h2>
-    <p>Compatible-subset patterns agree; five characters silently diverge.</p>
+    <p style="font-size: 1.5rem;">Feed the same regex to both engines, compare their answers. ~38 compatible-subset patterns agree perfectly. Five characters silently diverge:</p>
     <div class="callout finding" style="margin-top: 1rem;">
-        <strong>Finding: BRICS reserves 5 default metacharacters that Java treats as literals.</strong>
+        <strong>BRICS treats 5 ordinary ASCII characters as metacharacters. Java treats them as literals.</strong>
     </div>
-    <table style="margin-top: 1rem;">
+    <table style="margin-top: 1rem; font-size: 1.4rem;">
         <tr>
             <th>Char</th>
             <th>BRICS meaning</th>
-            <th>Java / PCRE / POSIX meaning</th>
+            <th>Java meaning</th>
         </tr>
-        <tr><td><code>@</code></td>       <td>ANYSTRING (matches everything)</td>       <td>literal <code>@</code></td></tr>
-        <tr><td><code>#</code></td>       <td>EMPTY (matches nothing)</td>              <td>literal <code>#</code></td></tr>
-        <tr><td><code>~</code></td>       <td>complement of following expression</td>   <td>literal <code>~</code></td></tr>
-        <tr><td><code>&amp;</code></td>   <td>intersection of two expressions</td>      <td>literal <code>&amp;</code></td></tr>
-        <tr><td><code>&lt;name&gt;</code></td><td>reference to a named automaton</td>   <td>literals</td></tr>
+        <tr><td><code>@</code></td>       <td>ANYSTRING &mdash; matches every string</td>  <td>literal <code>@</code></td></tr>
+        <tr><td><code>#</code></td>       <td>EMPTY &mdash; matches nothing</td>            <td>literal <code>#</code></td></tr>
+        <tr><td><code>~</code></td>       <td>complement of the next expression</td>        <td>literal <code>~</code></td></tr>
+        <tr><td><code>&amp;</code></td>   <td>intersection of two expressions</td>          <td>literal <code>&amp;</code></td></tr>
+        <tr><td><code>&lt;name&gt;</code></td><td>reference to a named automaton</td>       <td>literals</td></tr>
     </table>
-    <p class="small-note">Someone porting a regex between engines gets silently wrong matching &mdash; no error, no warning. Direct implication for refactoring proposal 4.</p>
-    <span class="slide-num">12 / 15</span>
+    <p class="small-note">Someone porting a regex between engines gets silently wrong matching &mdash; no error, no warning. This is refactoring proposal 4 on the next slide.</p>
+    <span class="slide-num">13 / 17</span>
 </section>
 
 <!-- ============================================================ -->
 <!-- SLIDE 13 — SOLID + 4 refactoring proposals                   -->
 <!-- ============================================================ -->
 <section class="slide">
-    <h2>Software design evaluation (§12)</h2>
-    <div class="two-col" style="margin-top: 1rem;">
-        <div>
-            <h3>SOLID verdicts</h3>
-            <ul style="font-size: 1.15rem;">
-                <li><strong>S:</strong> partially violated (Automaton is a god-class, 78 public methods)</li>
-                <li><strong>O:</strong> closed &mdash; no interfaces to plug into</li>
-                <li><strong>L:</strong> vacuous &mdash; no inheritance to violate</li>
-                <li><strong>I:</strong> vacuously satisfied</li>
-                <li><strong>D:</strong> violated &mdash; but arguably acceptable for a library</li>
-            </ul>
-        </div>
-        <div>
-            <h3>4 refactoring proposals</h3>
-            <ol style="font-size: 1.15rem;">
-                <li>Fix <code>Datatypes.exists()</code> NPE bug</li>
-                <li>Clarify <code>isTotal()</code> semantic vs structural</li>
-                <li>Replace <code>getFiniteStrings</code> null-return with exception or <code>Optional</code></li>
-                <li>Flip <code>RegExp</code> default flags to literal-first (interop fix)</li>
-            </ol>
-        </div>
-    </div>
-    <p class="small-note" style="margin-top: 2rem;">All 4 surfaced from writing tests, not from a code review.</p>
-    <span class="slide-num">13 / 15</span>
+    <h2>Software design &mdash; SOLID by principle</h2>
+    <p style="font-size: 1.4rem;">SOLID = 5 OO design rules from Robert Martin. My verdict on BRICS:</p>
+    <table style="font-size: 1.3rem; margin-top: 1rem;">
+        <tr><th>Principle</th><th>Verdict</th></tr>
+        <tr>
+            <td><strong>S</strong>ingle responsibility<br><span style="font-size: 0.95rem; color: var(--fg-muted);">one class, one job</span></td>
+            <td>Partially violated. <code>Automaton.java</code> is a <em>god class</em> &mdash; 78 public methods, doing data-holding, factory-making, facade-delegating, serialization, and global settings all at once.</td>
+        </tr>
+        <tr>
+            <td><strong>O</strong>pen/closed<br><span style="font-size: 0.95rem; color: var(--fg-muted);">extend without modifying</span></td>
+            <td>Closed. Almost no interfaces to plug into &mdash; adding a new operation means editing existing files.</td>
+        </tr>
+        <tr>
+            <td><strong>L</strong>iskov substitution<br><span style="font-size: 0.95rem; color: var(--fg-muted);">subclasses should work like parents</span></td>
+            <td>Vacuous. BRICS uses almost no inheritance to violate.</td>
+        </tr>
+        <tr>
+            <td><strong>I</strong>nterface segregation<br><span style="font-size: 0.95rem; color: var(--fg-muted);">many small over one big</span></td>
+            <td>Vacuously satisfied. Only one small interface exists.</td>
+        </tr>
+        <tr>
+            <td><strong>D</strong>ependency inversion<br><span style="font-size: 0.95rem; color: var(--fg-muted);">depend on abstractions</span></td>
+            <td>Violated &mdash; every dependency is on a concrete class. But defensible for a self-contained library where there's nothing to swap out.</td>
+        </tr>
+    </table>
+    <span class="slide-num">14 / 17</span>
+</section>
+
+<!-- ============================================================ -->
+<!-- SLIDE 15 — Refactoring proposals                             -->
+<!-- ============================================================ -->
+<section class="slide">
+    <h2>4 refactoring proposals (§12.4)</h2>
+    <p style="font-size: 1.4rem;">All 4 surfaced from writing tests, not from a code review pass:</p>
+    <ol style="font-size: 1.4rem; margin-top: 1rem;">
+        <li><strong>Fix <code>Datatypes.exists()</code> NPE bug</strong> &mdash; supposed to return <code>false</code> for missing resources; actually throws NullPointerException. 3-line fix.</li>
+        <li><strong>Clarify <code>isTotal()</code></strong> &mdash; the method's name reads "does this accept every string?" but it's only a structural shape check. Either rename it or make it actually semantic.</li>
+        <li><strong>Replace <code>getFiniteStrings(a, limit)</code> null-return</strong> &mdash; silently returns <code>null</code> when the language exceeds the limit, causing surprise NPEs downstream. Throw an exception or return an <code>Optional</code>.</li>
+        <li><strong>Flip <code>RegExp</code> default flags to literal-first</strong> &mdash; today <code>@ # ~ &amp; &lt;&gt;</code> are metacharacters by default, breaking interop with every other regex engine. Make them literal unless the caller opts in.</li>
+    </ol>
+    <span class="slide-num">15 / 17</span>
 </section>
 
 <!-- ============================================================ -->
@@ -524,7 +582,7 @@
 ├── reproducibility.html    <span class="comment">← §16 artifact checklist</span>
 ├── ai-tools.html           <span class="comment">← §21 AI usage disclosure</span>
 └── style.css</pre>
-    <span class="slide-num">14 / 15</span>
+    <span class="slide-num">16 / 17</span>
     <span class="slide-caption">screenshot: website/index.html in a browser</span>
 </section>
 
@@ -534,23 +592,20 @@
 <section class="slide">
     <h2>Conclusions</h2>
     <div class="callout" style="margin-top: 1rem;">
-        <strong>RQ2 answered empirically:</strong> CIT + strong oracle helps up to 3-wise; either dimension alone doesn't.
+        <strong>RQ2:</strong> combinatorial testing helps <em>only</em> when the checker is strict enough to notice differences. Neither more input combinations alone, nor stricter checks alone, moves the mutation score much. Together they add ~13% more kills &mdash; a real signal, though not huge &mdash; and going past 3-wise gives essentially nothing.
     </div>
     <div class="callout" style="margin-top: 1rem;">
-        <strong>Real defects found:</strong> 1 NPE bug, 2 API-clarity issues, 1 interoperability landmine &mdash; all from test-writing friction.
+        <strong>Real defects found:</strong> 1 NPE bug, 2 API-clarity issues, 1 interoperability landmine &mdash; all from writing tests, not from a code review.
     </div>
     <div class="callout" style="margin-top: 1rem;">
         <strong>BRICS' algebra is correct:</strong> all 18 metamorphic properties hold.
     </div>
-    <div class="callout" style="margin-top: 1rem;">
-        <strong>Reproducible:</strong> every number regenerates with two commands; CSVs are byte-identical thanks to pinned seed.
-    </div>
-    <p class="small-note" style="margin-top: 2rem;">Limitations: single BRICS commit, <code>Datatypes.buildAll</code> unreachable without shipping a Unicode data file, and the "strong oracle" is one specific choice of five metamorphic properties &mdash; a different strong oracle might land differently.</p>
-    <p style="text-align: center; margin-top: 2rem; font-size: 1.3rem; color: var(--fg-muted);">
+    <p class="small-note" style="margin-top: 1.5rem;">Limitations: single BRICS commit, <code>Datatypes.buildAll</code> unreachable, and the "stricter" checker is one specific choice of five metamorphic properties &mdash; a different one might land differently.</p>
+    <p style="text-align: center; margin-top: 1.5rem; font-size: 1.5rem; color: var(--fg-muted);">
         Thanks for watching.<br>
-        Source: <code>github.com/kotz96-lab/TopicsSE_T1</code>
+        <code>github.com/kotz96-lab/TopicsSE_T1</code>
     </p>
-    <span class="slide-num">15 / 15</span>
+    <span class="slide-num">17 / 17</span>
 </section>
 
 </div>
