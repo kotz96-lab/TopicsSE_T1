@@ -53,12 +53,15 @@ is simultaneously:</p>
 <p>Each is a distinct responsibility. Any of them changing touches <code>Automaton.java</code>.</p>
 
 <h3>O &mdash; Open / Closed</h3>
-<p><strong>Closed for extension.</strong> BRICS has no interfaces or abstract
-classes in the automaton module (except Java's marker interfaces
-<code>Serializable</code> and <code>Cloneable</code>). The one seam is
-<code>AutomatonProvider</code> for named-automaton lookup. To add a new
-operation you must modify <code>Automaton.java</code> and one of the
-utility classes. To swap minimization algorithms you edit
+<p><strong>Violated.</strong> The principle says "open to extension,
+closed to modification" &mdash; you should be able to add new features
+by writing new code rather than editing existing files. BRICS has
+almost no interfaces or abstract classes in the automaton module
+(except Java's marker interfaces <code>Serializable</code> and
+<code>Cloneable</code>). The one seam is <code>AutomatonProvider</code>
+for named-automaton lookup. To add a new operation you must modify
+<code>Automaton.java</code> and one of the utility classes. To swap
+minimization algorithms you edit
 <code>MinimizationOperations.minimize</code>'s switch statement.</p>
 
 <h3>L &mdash; Liskov Substitution</h3>

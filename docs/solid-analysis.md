@@ -81,7 +81,7 @@ each tightly scoped data types with one job.
 
 ### O — Open/Closed Principle
 
-**Verdict: closed for extension. Everything hardcoded.**
+**Verdict: violated. Adding new operations requires modifying existing files rather than extending via new classes.**
 
 BRICS has **no interfaces or abstract classes** in the automaton
 module (except two marker interfaces: `Serializable` and

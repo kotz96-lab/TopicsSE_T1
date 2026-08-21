@@ -394,16 +394,15 @@
 <!-- ============================================================ -->
 <section class="slide">
     <h2>Generated tables at 2/3/4-wise</h2>
-    <p>Testing <em>every</em> combination of all 7 parameters = <strong>12,960 tests</strong>. PICT picks a smaller subset that still covers every <em>pair</em> (or triple, or quadruple) of values at least once:</p>
-    <table style="max-width: 800px; margin-top: 1.5rem;">
+    <p>PICT picks a small subset of parameter combinations that still covers every <em>pair</em> (or triple, or quadruple) of values at least once:</p>
+    <table style="max-width: 600px; margin-top: 1.5rem;">
         <tr>
             <th>Interaction strength</th>
-            <th class="right">Rows PICT generates</th>
-            <th class="right">Reduction</th>
+            <th class="right">Rows generated</th>
         </tr>
-        <tr><td>2-wise (every <em>pair</em>)</td>       <td class="right"><strong>34</strong></td>  <td class="right">99.7% smaller</td></tr>
-        <tr><td>3-wise (every <em>triple</em>)</td>    <td class="right"><strong>152</strong></td> <td class="right">98.8% smaller</td></tr>
-        <tr><td>4-wise (every <em>quadruple</em>)</td> <td class="right"><strong>568</strong></td> <td class="right">95.6% smaller</td></tr>
+        <tr><td>2-wise (every <em>pair</em>)</td>       <td class="right"><strong>34</strong></td></tr>
+        <tr><td>3-wise (every <em>triple</em>)</td>    <td class="right"><strong>152</strong></td></tr>
+        <tr><td>4-wise (every <em>quadruple</em>)</td> <td class="right"><strong>568</strong></td></tr>
     </table>
     <p class="small-note" style="margin-top: 2rem;">Each row is turned into a concrete regex + test input and fed to JUnit.</p>
     <span class="slide-num">9 / 17</span>
@@ -529,7 +528,7 @@
         </tr>
         <tr>
             <td><strong>O</strong>pen/closed<br><span style="font-size: 0.95rem; color: var(--fg-muted);">extend without modifying</span></td>
-            <td>Closed. Almost no interfaces to plug into &mdash; adding a new operation means editing existing files.</td>
+            <td>Violated. Almost no interfaces to plug into &mdash; adding a new operation forces you to modify existing files rather than write a new class.</td>
         </tr>
         <tr>
             <td><strong>L</strong>iskov substitution<br><span style="font-size: 0.95rem; color: var(--fg-muted);">subclasses should work like parents</span></td>
