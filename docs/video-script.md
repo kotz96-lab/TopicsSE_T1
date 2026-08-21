@@ -101,13 +101,13 @@ student. 17 slides. Follow the "Say" text under each slide.*
 > "Section eight requires I analyze at least five surviving
 > mutants. I picked five and grouped them by why they survived.
 > The three patterns are: mutations that only change internal
-> state without affecting the language we accept — our tests are
-> blind to those. Mutations at the extreme end of the character
-> range — we test with ASCII so we don't hit them. And mutations
-> that scramble toString output — our tests only check that
-> toString returned something, not what. One of the five is truly
-> equivalent; the other four could be killed with more focused
-> assertions."
+> state without affecting which strings the automaton accepts —
+> our tests are blind to those. Mutations inside private helpers
+> where our test inputs happen to not cover the exact case the
+> mutation affects. And mutations that scramble toString's output
+> — our tests just check the result isn't null. One of the five is
+> truly equivalent; the other four could be killed by adding more
+> targeted assertions."
 
 ---
 

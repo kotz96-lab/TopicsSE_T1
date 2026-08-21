@@ -353,8 +353,8 @@
             <td><code>BasicOperations.concatenate:60</code></td>
         </tr>
         <tr>
-            <td><strong>2. Character-boundary blind</strong> &mdash; mutation fires at <code>Character.MAX_VALUE</code>, our ASCII inputs never hit it</td>
-            <td><code>Automaton.getStartPoints:410</code></td>
+            <td><strong>2. Sparse test sampling</strong> &mdash; mutation only misfires on specific input values we don't test</td>
+            <td><code>BasicAutomata.atLeast:158</code></td>
         </tr>
         <tr>
             <td><strong>3. Output-string blind</strong> &mdash; mutation scrambles <code>toString</code>, our tests only check non-null</td>
