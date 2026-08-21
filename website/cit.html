@@ -37,16 +37,12 @@
     <code>@ParameterizedTest</code>+<code>@CsvFileSource</code>.
 </p>
 
-<h2>The idea in one paragraph</h2>
+<h2>Model size vs full cross-product</h2>
 
 <p>
-    Our BRICS regex-construction pipeline has 7 configurable
-    parameters (character alphabet, quantifier, alternation depth,
-    nesting depth, etc.). Fully cross-multiplying gives 12,960
-    configurations &mdash; too many to test. PICT reduces this by
-    producing a small table where <em>every pair</em> of parameter
-    values appears together at least once (2-wise), or every triple
-    (3-wise), or every quadruple (4-wise). Reductions:
+    7 parameters, full cross-product = 12,960 configurations. PICT
+    picks a subset covering every pair (or triple, or quadruple) of
+    values at least once:
 </p>
 
 <table>
@@ -114,30 +110,13 @@ IF [NestingDepth] = 2 AND [AlternationDepth] = 0 THEN [Quantifier] &lt;&gt; "non
     </li>
 </ul>
 
-<h2>Direct answer to RQ2 &mdash; the headline experiment</h2>
-
-<div class="callout finding">
-    <p>
-        <strong>Research Question 2:</strong> <em>Does combinatorial
-        interaction testing improve mutation scores?</em>
-    </p>
-    <p>
-        <strong>Answer: it depends on the oracle.</strong> With a
-        weak oracle, interaction strength does not measurably help.
-        With a strong oracle it does &mdash; up to 3-wise, then
-        plateaus. And the gap between weak and strong oracles
-        widens as strength grows, so the two dimensions compound.
-    </p>
-</div>
-
-<h3>The 3&times;2 grid &mdash; mutation kills</h3>
+<h2>The 3&times;2 grid</h2>
 
 <p>
-    Each cell is the mutation-killing power of one strength &times;
-    oracle combination in isolation (PIT filtered by JUnit tag via
-    PIT's <code>-DincludedGroups=</code> flag &mdash; see the
-    <a href="ai-tools.html">AI Tools</a> page for the story of how we
-    caught the filter bug).
+    Six PIT runs. Each cell is one strength &times; oracle combination
+    in isolation, using PIT's <code>-DincludedGroups=</code> filter
+    (Surefire's <code>-Dgroups=</code> silently doesn't work &mdash;
+    see <a href="ai-tools.html">AI Tools</a> for the correction story).
 </p>
 
 <table>
@@ -184,75 +163,39 @@ IF [NestingDepth] = 2 AND [AlternationDepth] = 0 THEN [Quantifier] &lt;&gt; "non
     </tr>
 </table>
 
-<h3>Why the absolute numbers look small (~10%)</h3>
-
-<p>
-    These runs are <em>deliberately isolated</em> &mdash; each is
-    only 34-568 tests against 2087 mutations across 25 BRICS classes.
-    About 76% of the mutations get <code>NO_COVERAGE</code> because
-    the isolated PICT suite doesn't touch classes like
-    <code>Datatypes</code>, <code>AutomatonMatcher</code>, or
-    <code>StringUnionOperations</code>. When run together with the
-    180 hand tests, the full suite hits 51% mutation score.
+<p class="small">
+    Absolute scores are &lt;12% because the isolated runs only touch
+    ~24% of BRICS' code &mdash; classes like <code>Datatypes</code>,
+    <code>AutomatonMatcher</code>, <code>StringUnionOperations</code>
+    aren't exercised by the PICT pipeline at all, so ~76% of mutants
+    show up as <code>NO_COVERAGE</code>. Combined with the 180 hand
+    tests, the full suite hits 51%.
 </p>
 
-<h2>Interpretation, in prose</h2>
-
-<h3>Direction 1: effect of increasing interaction strength</h3>
+<h3>Deltas</h3>
 
 <table>
-    <tr><th>Transition</th><th>Weak &Delta;</th><th>Strong &Delta;</th></tr>
-    <tr><td>2-wise &rarr; 3-wise</td> <td>+11 kills</td> <td><strong>+20 kills</strong></td></tr>
-    <tr><td>3-wise &rarr; 4-wise</td> <td>&minus;1 (noise)</td> <td>+2 kills (diminishing)</td></tr>
+    <tr><th>Change</th><th>Weak &Delta;</th><th>Strong &Delta;</th></tr>
+    <tr><td>2-wise &rarr; 3-wise</td>            <td>+11 kills</td>  <td>+20 kills</td></tr>
+    <tr><td>3-wise &rarr; 4-wise</td>            <td>&minus;1</td>   <td>+2</td></tr>
+    <tr><td>Weak &rarr; Strong at each strength</td><td colspan="2">+15 (2-wise), +24 (3-wise), +27 (4-wise)</td></tr>
 </table>
 
 <p>
-    With the weak oracle, interaction strength is essentially flat.
-    With the strong oracle, there's a real jump from 2 to 3-wise
-    and then diminishing returns to 4-wise. Classic pattern &mdash;
-    3-wise catches most of what higher strengths would.
+    Weak-oracle strength curve is flat. Strong-oracle jumps at 3-wise
+    then plateaus &mdash; 3-wise catches most of what 4-wise would.
+    Weak-vs-strong gap widens with strength: the two dimensions
+    compound.
 </p>
 
-<h3>Direction 2: effect of strengthening the oracle</h3>
-
-<table>
-    <tr><th>Strength</th><th>Weak &rarr; Strong &Delta;</th></tr>
-    <tr><td>2-wise</td> <td>+15 kills</td></tr>
-    <tr><td>3-wise</td> <td>+24 kills</td></tr>
-    <tr><td>4-wise</td> <td>+27 kills</td></tr>
-</table>
+<h2>Practical takeaway</h2>
 
 <p>
-    The gap widens as interaction strength grows. Meaning the two
-    dimensions compound &mdash; more combinations give the stronger
-    oracle more scenarios in which to fire; more oracle sensitivity
-    lets the extra combinations pay off. Neither dimension alone is
-    worth much; together they add up.
+    Strong &times; 3-wise (229 kills) beats weak &times; 4-wise
+    (204 kills) despite 4-wise having ~4&times; the rows. Oracle
+    strength matters more than interaction strength; the sweet spot
+    is a strong oracle at 3-wise.
 </p>
-
-<h2>Practical recommendations from this data</h2>
-
-<ol>
-    <li>
-        <strong>Use at least 3-wise, not 2-wise.</strong> The +20
-        strong-oracle gain justifies +118 extra rows (~50 s of test
-        time).
-    </li>
-    <li>
-        <strong>Don't invest in 4-wise unless the oracle is very
-        sensitive.</strong> Returns diminish; rows quadruple.
-    </li>
-    <li>
-        <strong>Oracle strength &gt; interaction strength.</strong>
-        Strong &times; 3-wise (229 kills) beats weak &times; 4-wise
-        (204 kills) despite 4-wise having almost 4&times; the rows.
-    </li>
-    <li>
-        <strong>Combine both.</strong> The strong 3-wise sweet spot
-        kills 229 mutants in ~9 min &mdash; excellent per-second
-        yield.
-    </li>
-</ol>
 
 <h2>Reproducing the CIT experiment</h2>
 

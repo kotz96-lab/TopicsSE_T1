@@ -149,30 +149,21 @@
     </tr>
 </table>
 
-<h2>Key finding &mdash; the headline for the whole study</h2>
+<h2>Key finding</h2>
 
-<div class="callout finding">
-    <strong>Research Question 2:</strong> Does combinatorial
-    interaction testing improve mutation scores?
-    <p>
-        <strong>Our data says: it depends on the oracle.</strong>
-        With a <em>weak</em> oracle (smoke + double-negation on one
-        input), increasing interaction strength from 2-wise to
-        3-wise to 4-wise did <em>not</em> measurably improve fault
-        detection: 194 &rarr; 205 &rarr; 204 mutants killed.
-        With a <em>strong</em> oracle (five metamorphic properties on
-        five inputs per row), interaction strength <em>did</em> help
-        up to 3-wise (209 &rarr; 229) and then plateaued (231 at
-        4-wise). The gap between weak and strong widens as strength
-        grows: +15, +24, +27 additional kills at 2/3/4-wise
-        respectively. <strong>The two dimensions compound rather than
-        acting independently.</strong>
-    </p>
-    <p class="small">
-        Full data and interpretation on the
-        <a href="cit.html">Combinatorial Interaction Testing</a> page.
-    </p>
-</div>
+<p>
+    On RQ2 (does CIT improve mutation scores?): interaction strength
+    alone doesn't move the needle. Going 2-wise &rarr; 3-wise &rarr;
+    4-wise under a weak oracle: 194, 205, 204 kills &mdash; flat.
+    Under a stronger oracle that runs five metamorphic properties per
+    row: 209, 229, 231 &mdash; a real bump at 3-wise, then plateaus.
+    The weak-vs-strong gap grows (+15, +24, +27) as strength rises,
+    so the two dimensions compound.
+</p>
+<p class="small">
+    Numbers and interpretation on the
+    <a href="cit.html">CIT page</a>.
+</p>
 
 <h2>Where to find the source</h2>
 

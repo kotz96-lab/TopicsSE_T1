@@ -209,20 +209,19 @@
     <h2>Two goals</h2>
     <div class="two-col">
         <div>
-            <h3>What BRICS is</h3>
+            <h3>BRICS</h3>
             <ul>
-                <li>24-year-old Java library</li>
+                <li>Java library, ~4,700 lines, 18 classes</li>
                 <li>Finite automata + regular expressions</li>
                 <li>Union, intersection, complement, minimization</li>
-                <li>~4,700 lines across 18 classes</li>
                 <li>Commit <code>582d8f3</code></li>
             </ul>
         </div>
         <div>
-            <h3>Assignment asks us to</h3>
+            <h3>Assignment</h3>
             <ol>
-                <li>Evaluate BRICS itself &mdash; coverage, mutation resistance, design quality</li>
-                <li>Evaluate whether combinatorial interaction testing (CIT / PICT) improves fault detection &mdash; <strong>this is RQ2, and it drives most of the experiment</strong></li>
+                <li>Evaluate BRICS &mdash; coverage, mutation resistance, design</li>
+                <li>Evaluate whether CIT (via PICT) improves fault detection &mdash; <strong>RQ2</strong></li>
             </ol>
         </div>
     </div>
@@ -248,7 +247,7 @@
 ├── docs/                                 <span class="comment">← SOLID, refactoring, threats, AI log, ...</span>
 └── website/                              <span class="comment">← §15 static HTML report (9 pages)</span>
 </pre>
-    <p class="small-note">1,948 tests total &middot; all passing &middot; reproducible with two Maven commands</p>
+    <p class="small-note">1,948 tests, all passing, two Maven commands to reproduce.</p>
     <span class="slide-num">3 / 15</span>
     <span class="slide-caption">screenshot: VS Code file tree of the repo</span>
 </section>
@@ -285,7 +284,7 @@
 <!-- ============================================================ -->
 <section class="slide">
     <h2>Mutation testing with PIT</h2>
-    <p>PIT generates 2,087 tiny sabotages of BRICS and re-runs our suite against each.</p>
+    <p>PIT injects 2,087 small mutations into BRICS and reruns our suite against each.</p>
     <div class="two-col" style="margin-top: 2rem;">
         <div>
             <div class="big-number">
@@ -300,7 +299,7 @@
             </div>
         </div>
     </div>
-    <p class="small-note">This is our baseline against which the CIT experiment is measured.</p>
+    <p class="small-note">Baseline for the CIT experiment.</p>
     <span class="slide-num">5 / 15</span>
     <span class="slide-caption">screenshot: target/pit-reports/index.html</span>
 </section>
@@ -309,24 +308,23 @@
 <!-- SLIDE 6 — 5 mutants analyzed                                 -->
 <!-- ============================================================ -->
 <section class="slide">
-    <h2>Analysis of 5 surviving mutants (§8)</h2>
-    <p>Distilled into three failure patterns:</p>
-    <div class="callout">
-        <strong>1. Behavioural-oracle blindness.</strong>
-        Mutants change internal state (a determinism flag, a skipped <code>minimize()</code>) without changing the language.
-        <em>Example: <code>BasicOperations.concatenate</code> line 60.</em>
-    </div>
-    <div class="callout">
-        <strong>2. Boundary blindness.</strong>
-        Mutants misfire at <code>Character.MAX_VALUE</code>; our ASCII inputs miss them.
-        <em>Example: <code>Automaton.getStartPoints</code> line 410.</em>
-    </div>
-    <div class="callout">
-        <strong>3. Output-content blindness.</strong>
-        Mutants scramble <code>toString</code> content; our tests only assert non-null.
-        <em>Example: <code>Transition.appendCharString</code> line 136.</em>
-    </div>
-    <p class="small-note">1 of 5 is behaviourally equivalent; the other 4 are killable with more focused assertions.</p>
+    <h2>5 surviving mutants (§8) &mdash; three patterns</h2>
+    <table style="font-size: 1.15rem;">
+        <tr><th>Pattern</th><th>Where</th></tr>
+        <tr>
+            <td><strong>1.</strong> Internal-state change, language preserved</td>
+            <td><code>BasicOperations.concatenate:60</code>, <code>RegExp.toAutomaton:326</code></td>
+        </tr>
+        <tr>
+            <td><strong>2.</strong> Boundary at <code>Character.MAX_VALUE</code>, our ASCII inputs miss</td>
+            <td><code>Automaton.getStartPoints:410</code>, <code>BasicAutomata.atLeast:158</code></td>
+        </tr>
+        <tr>
+            <td><strong>3.</strong> <code>toString</code> content scrambled, we only check non-null</td>
+            <td><code>Transition.appendCharString:136</code></td>
+        </tr>
+    </table>
+    <p class="small-note">1 of 5 is behaviourally equivalent. Other 4 killable with focused assertions.</p>
     <span class="slide-num">6 / 15</span>
 </section>
 
@@ -401,7 +399,7 @@
             <td class="right"><strong style="color: var(--accent);">231</strong></td>
         </tr>
     </table>
-    <p class="small-note" style="margin-top: 1.5rem;"><em>Read across:</em> weak is flat, strong rises then plateaus (diminishing returns past 3-wise). <em>Read down:</em> strong-vs-weak gap widens as interaction strength grows (+15, +24, +27). <strong style="color: var(--accent);">The two dimensions compound.</strong></p>
+    <p class="small-note" style="margin-top: 1.5rem;"><em>Across:</em> weak flat; strong rises then plateaus. <em>Down:</em> weak-vs-strong gap widens with strength (+15, +24, +27). Two dimensions compound.</p>
     <span class="slide-num">9 / 15</span>
 </section>
 
@@ -409,15 +407,13 @@
 <!-- SLIDE 10 — Interpretation                                    -->
 <!-- ============================================================ -->
 <section class="slide center-content">
-    <div class="callout finding" style="max-width: 900px; font-size: 1.5rem;">
-        <p><strong>RQ2: Does CIT improve mutation scores?</strong></p>
-        <p style="margin-top: 1rem;">
-            It depends on the oracle. Interaction strength alone barely helps.
-            Oracle strength alone helps modestly. <strong>Together they compound.</strong>
-            And even the best combination shows diminishing returns past 3-wise.
-        </p>
+    <h2 style="text-align: center;">RQ2 &mdash; what the data says</h2>
+    <div class="callout finding" style="max-width: 900px; font-size: 1.6rem; text-align: left;">
+        Interaction strength alone: flat.<br>
+        Oracle strength alone: modest gain.<br>
+        <strong>Together they compound. Diminishing returns past 3-wise.</strong>
     </div>
-    <p class="small-note" style="margin-top: 2rem; max-width: 800px;">Practical takeaway: use 3-wise with a strong oracle. Higher interaction strength alone doesn't pay off; oracle sensitivity is what makes the extra combinations bite.</p>
+    <p class="small-note" style="margin-top: 2rem;">Sweet spot for this codebase: strong oracle at 3-wise.</p>
     <span class="slide-num">10 / 15</span>
 </section>
 
@@ -448,7 +444,7 @@
         </div>
     </div>
     <div class="callout" style="margin-top: 1.5rem;">
-        <strong>All 18 hold.</strong> Positive finding &mdash; BRICS' regular-language algebra is correctly implemented on the operations we exercised.
+        <strong>All 18 hold.</strong> BRICS' regular-language algebra is correct on what we tested.
     </div>
     <span class="slide-num">11 / 15</span>
 </section>
@@ -504,7 +500,7 @@
             </ol>
         </div>
     </div>
-    <p class="small-note" style="margin-top: 2rem;">All 4 proposals surfaced organically from writing tests, not from a code review pass. Different testing techniques expose different fault classes.</p>
+    <p class="small-note" style="margin-top: 2rem;">All 4 surfaced from writing tests, not from a code review.</p>
     <span class="slide-num">13 / 15</span>
 </section>
 

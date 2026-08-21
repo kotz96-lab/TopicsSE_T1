@@ -39,11 +39,10 @@
 <h2>What we built</h2>
 
 <p>
-    We wrote <strong>180 hand-crafted unit tests</strong> across 13
-    test classes covering every public class in
-    <code>dk.brics.automaton.*</code>. On top of those, the assignment's
-    parameterized/PICT/metamorphic/differential/infra suites contribute
-    the remaining tests for a total of <strong>1948</strong>.
+    180 unit tests across 13 test classes covering every public class
+    in <code>dk.brics.automaton.*</code>. Most were AI-drafted and
+    then reviewed / adjusted; the PICT, metamorphic, differential, and
+    infra suites on top bring the total to <strong>1948</strong>.
 </p>
 
 <h3>Test class inventory</h3>
@@ -111,31 +110,6 @@
     </p>
 </div>
 
-<h2>Assertion approach &mdash; a note on style</h2>
-
-<p>
-    Every hand-written test asserts on a <em>specific expected outcome</em>,
-    not just "no exception was thrown." Example patterns:
-</p>
-
-<pre><code>// Membership assertions
-assertTrue(a.union(b).run("a"));
-assertFalse(complementOfMakeAnyChar.run(""));
-
-// Set-of-strings assertions
-assertEquals(Set.of("cat", "dog", "fish"),
-             BasicAutomata.makeStringUnion("cat","dog","fish").getFiniteStrings());
-
-// Structural assertions on determinism / minimization
-assertTrue(automaton.isDeterministic());
-assertEquals(expectedStateCount, automaton.getNumberOfStates());</code></pre>
-
-<p>
-    That sharpness is what carries the 51% mutation score. PICT-driven
-    tests (<a href="cit.html">covered elsewhere</a>) use weaker oracles
-    by design so we can isolate the effect of oracle strength.
-</p>
-
 <h2>Bugs found while writing tests (not by mutation testing)</h2>
 
 <p>
@@ -151,14 +125,6 @@ assertEquals(expectedStateCount, automaton.getNumberOfStates());</code></pre>
     <li><code>isTotal()</code> is a structural predicate masquerading as a semantic one.</li>
     <li><code>SpecialOperations.getFiniteStrings(a, limit)</code> silently returns <code>null</code> on overflow.</li>
 </ol>
-
-<h2>Readability, flakiness, execution time</h2>
-
-<ul>
-    <li><strong>Readability:</strong> tests are grouped by <code>@Nested</code> classes with <code>@DisplayName</code> labels ("Union commutativity", "regex compiles + accepts simple language", etc.). Each test does one thing and asserts one behaviour.</li>
-    <li><strong>Flakiness:</strong> zero observed. The suite runs deterministically because BRICS is deterministic, all inputs are hard-coded, and PICT tables are byte-identical thanks to seed pinning (<code>/r:1</code>).</li>
-    <li><strong>Execution time:</strong> the entire 1948-test suite runs in ~4 seconds locally; PIT mutation coverage of the same suite takes ~12 minutes because it runs the tests against each of 2087 mutants.</li>
-</ul>
 
 <h2>Reproducing this section</h2>
 
