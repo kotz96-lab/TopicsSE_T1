@@ -313,30 +313,35 @@
         <tr>
             <th>Stage</th>
             <th class="right">Tests</th>
-            <th class="right">Mutation score</th>
+            <th class="right">Killed</th>
+            <th class="right">Score</th>
         </tr>
         <tr>
             <td>Empty (SmokeTest only)</td>
             <td class="right">1</td>
+            <td class="right">~0</td>
             <td class="right">~0%</td>
         </tr>
         <tr>
             <td>+ hand-written suite</td>
             <td class="right">181</td>
+            <td class="right"><strong style="color: var(--accent);">1075</strong></td>
             <td class="right"><strong style="color: var(--accent);">51.5%</strong></td>
         </tr>
         <tr>
-            <td>+ weak PICT tests (2/3/4-wise)</td>
+            <td>+ weak PICT (2/3/4-wise)</td>
             <td class="right">934</td>
-            <td class="right">51.4% <span class="comment">(no gain)</span></td>
+            <td class="right">1074</td>
+            <td class="right">51.4%</td>
         </tr>
         <tr>
-            <td>+ metamorphic + differential + infra</td>
+            <td>+ metamorphic + differential + strong PICT</td>
             <td class="right">1948</td>
-            <td class="right">51% aggregate</td>
+            <td class="right">1030</td>
+            <td class="right">50.7%</td>
         </tr>
     </table>
-    <p class="small-note" style="margin-top: 1.5rem;">The hand-written suite does the heavy lifting. PICT alone adds nothing measurable with a weak oracle &mdash; hence the §9 experiment on the next slides.</p>
+    <p class="small-note" style="margin-top: 1rem;">Hand tests do the heavy lifting. Extra test flavors overlap: they exercise the same BRICS operations, so a mutant they'd catch is usually already killed by a hand test. The full-suite score slightly drops because slower metamorphic tests cause more PIT timeouts (classified separately, not as kills).</p>
     <span class="slide-num">6 / 17</span>
 </section>
 

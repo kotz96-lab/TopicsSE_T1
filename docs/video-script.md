@@ -82,16 +82,19 @@ student. 17 slides. Follow the "Say" text under each slide.*
 **Say:**
 > "This table shows how the mutation score changed as I added
 > different kinds of tests. With just the hand-written suite —
-> 180 tests — the score is already fifty-one and a half percent,
-> essentially our final number. Adding all the PICT combinatorial
-> tests with a weak oracle brings us to 934 tests but the score
-> doesn't move at all. Adding the metamorphic and differential
-> tests on top brings the total to 1948 and the aggregate score
-> stays around fifty-one percent.
+> 180 tests — the score is already fifty-one and a half percent.
+> Adding the PICT combinatorial tests with a weak oracle brings
+> us to 934 tests, but the score doesn't move. Adding metamorphic,
+> differential, and strong-oracle PICT tests brings the total to
+> 1948, and the score actually slightly drops to fifty point seven
+> percent — because the additional slow tests cause PIT to time
+> out on more mutants, which are then classified separately from
+> kills.
 >
-> The takeaway: the hand-written tests are doing the heavy
-> lifting. Just adding more test cases isn't helping. That's what
-> the RQ2 experiment on the next few slides investigates."
+> The takeaway: extra test flavors overlap with what hand tests
+> already cover, so they don't measurably add kills. That's the
+> setup for the RQ2 experiment on the next few slides — isolating
+> what CIT actually contributes."
 
 ---
 
