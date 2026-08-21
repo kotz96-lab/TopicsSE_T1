@@ -119,6 +119,16 @@
                             </outputFormats>
                             <timestampedReports>false</timestampedReports>
                             <testPlugin>junit5</testPlugin>
+                            <!--
+                                Bumped generously so slow strong-oracle metamorphic
+                                tests (25 assertions per PICT row) don't cause
+                                mutant-classification to flip from KILLED to
+                                TIMED_OUT purely because of test-suite size.
+                                Effective per-test timeout =
+                                  originalTestTime * timeoutFactor + timeoutConstant
+                            -->
+                            <timeoutConstant>15000</timeoutConstant>
+                            <timeoutFactor>2.5</timeoutFactor>
                         </configuration>
                         <executions>
                             <execution>

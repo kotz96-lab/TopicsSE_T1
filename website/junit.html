@@ -99,12 +99,16 @@
 
 <div class="callout">
     <p>
-        Full 1948-test suite: <span class="metric big">50.7%</span>
-        mutation score (1030 of 2031 mutations killed).
-        Test strength (kills among covered mutants): <span class="metric">68%</span>.
+        Full 1948-test suite: <span class="metric big">52.3%</span>
+        mutation detection rate (1062 of 2031 mutations killed
+        or timed-out). Test strength: <span class="metric">70%</span>.
     </p>
     <p class="small">
-        Detailed per-class breakdown and 5-mutant analysis on the
+        We report <em>detection rate</em> (killed + timed-out) rather
+        than raw kill count because timeouts are also a real detection
+        signal &mdash; PIT halted because the mutant made a test hang,
+        which means the test noticed something wrong. Detailed per-class
+        breakdown and 5-mutant analysis on the
         <a href="design.html">design page</a> and in
         <a href="https://github.com/kotz96-lab/TopicsSE_T1/blob/main/docs/mutation-analysis.md">docs/mutation-analysis.md</a>.
     </p>

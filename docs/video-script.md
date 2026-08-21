@@ -77,24 +77,22 @@ student. 17 slides. Follow the "Say" text under each slide.*
 
 ---
 
-## Slide 6 — Test-count progression (40 sec)
+## Slide 6 — Test-count progression (35 sec)
 
 **Say:**
-> "This table shows how the mutation score changed as I added
-> different kinds of tests. With just the hand-written suite —
-> 180 tests — the score is already fifty-one and a half percent.
-> Adding the PICT combinatorial tests with a weak oracle brings
-> us to 934 tests, but the score doesn't move. Adding metamorphic,
-> differential, and strong-oracle PICT tests brings the total to
-> 1948, and the score actually slightly drops to fifty point seven
-> percent — because the additional slow tests cause PIT to time
-> out on more mutants, which are then classified separately from
-> kills.
+> "This table shows how the detection rate — counting mutants that
+> our tests kill plus mutants that cause our tests to time out —
+> changes as I add different kinds of tests. With just the hand-
+> written suite, we're already at fifty-one point six percent.
+> Adding all the PICT combinatorial tests takes us to fifty-two
+> point one. Adding metamorphic, differential, and strong-oracle
+> PICT tests takes us to fifty-two point three.
 >
-> The takeaway: extra test flavors overlap with what hand tests
-> already cover, so they don't measurably add kills. That's the
-> setup for the RQ2 experiment on the next few slides — isolating
-> what CIT actually contributes."
+> The gain from all those extra tests is tiny — under one
+> percentage point. That's because they exercise the same BRICS
+> operations the hand tests already cover, and each mutant can
+> only be counted once. To make this number jump we'd need to
+> reach code paths our current tests can't touch."
 
 ---
 

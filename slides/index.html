@@ -308,40 +308,35 @@
 <!-- SLIDE 6 — Test progression + mutation score                  -->
 <!-- ============================================================ -->
 <section class="slide">
-    <h2>Adding tests, tracking the score</h2>
+    <h2>Adding tests, tracking detection</h2>
     <table style="font-size: 1.5rem;">
         <tr>
             <th>Stage</th>
             <th class="right">Tests</th>
-            <th class="right">Killed</th>
-            <th class="right">Score</th>
+            <th class="right">Detection rate</th>
         </tr>
         <tr>
             <td>Empty (SmokeTest only)</td>
             <td class="right">1</td>
-            <td class="right">~0</td>
             <td class="right">~0%</td>
         </tr>
         <tr>
             <td>+ hand-written suite</td>
             <td class="right">181</td>
-            <td class="right"><strong style="color: var(--accent);">1075</strong></td>
-            <td class="right"><strong style="color: var(--accent);">51.5%</strong></td>
+            <td class="right"><strong style="color: var(--accent);">51.6%</strong></td>
         </tr>
         <tr>
             <td>+ weak PICT (2/3/4-wise)</td>
             <td class="right">934</td>
-            <td class="right">1074</td>
-            <td class="right">51.4%</td>
+            <td class="right">52.1%</td>
         </tr>
         <tr>
             <td>+ metamorphic + differential + strong PICT</td>
             <td class="right">1948</td>
-            <td class="right">1030</td>
-            <td class="right">50.7%</td>
+            <td class="right"><strong style="color: var(--accent);">52.3%</strong></td>
         </tr>
     </table>
-    <p class="small-note" style="margin-top: 1rem;">Hand tests do the heavy lifting. Extra test flavors overlap: they exercise the same BRICS operations, so a mutant they'd catch is usually already killed by a hand test. The full-suite score slightly drops because slower metamorphic tests cause more PIT timeouts (classified separately, not as kills).</p>
+    <p class="small-note" style="margin-top: 1rem;">Detection rate = (killed + timed-out) / total mutations. Hand tests do the heavy lifting; extra test flavors add only ~1 percentage point because they exercise the same BRICS operations. A mutant that could be caught by both a hand test and a metamorphic test only counts once.</p>
     <span class="slide-num">6 / 17</span>
 </section>
 
