@@ -113,6 +113,40 @@
                             <targetTests>
                                 <param>${pit.targetTests}</param>
                             </targetTests>
+                            <!--
+                                dk.brics.automaton.Datatypes.buildAll() is build-time-only
+                                code: invoked only from main(), it constructs every
+                                predefined automaton (XML/XSD types, Unicode blocks and
+                                categories) from a companion resource (src/Unicode.txt)
+                                that BRICS does not vendor and this repo does not ship.
+                                buildAll() and main() are therefore genuinely unreachable
+                                here, as are five private helpers buildAll() alone calls
+                                (makeCodePoint, buildMap, putWith, putFrom, put). PIT
+                                still generates mutants inside them and reports them as
+                                "no coverage", which deflates the mutation score with
+                                mutants no test suite in this repo could ever kill.
+
+                                PIT's excludedMethods filter matches by method name only
+                                (no class qualifier — see PIT's
+                                GregorEngineFactory#stringToMethodInfoPredicate, which
+                                matches purely on MethodInfo.getName()), so Datatypes'
+                                private load()/store() are deliberately NOT excluded
+                                here: those names collide with real, tested methods on
+                                Automaton, RunAutomaton, and MatchOnlyRunAutomaton, and
+                                excluding them would wrongly drop mutation coverage on
+                                reachable code. The residual "no coverage" mutants from
+                                Datatypes.load()/store()/get() are small and are
+                                discussed in docs/mutation-analysis.md instead.
+                            -->
+                            <excludedMethods>
+                                <param>buildAll</param>
+                                <param>main</param>
+                                <param>makeCodePoint</param>
+                                <param>buildMap</param>
+                                <param>putWith</param>
+                                <param>putFrom</param>
+                                <param>put</param>
+                            </excludedMethods>
                             <outputFormats>
                                 <param>HTML</param>
                                 <param>XML</param>

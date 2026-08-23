@@ -424,3 +424,59 @@ from this file.
   correctness. AI tooling still needs a human reviewer to check
   that outputs answer the question the experiment was designed to
   answer.
+
+### 2026-08-23 — Polish pass: PIT scope fix, stale-docs update, infra test gap
+
+- **Tool:** Claude Code (Sonnet 5).
+- **Who:** Itay.
+- **What we asked it to do:** A scoped correctness pass on an
+  already-complete project: (1) fix PIT counting mutations inside
+  `Datatypes.buildAll()`'s dead subtree, which deflated the mutation
+  score, (2) bring `docs/STATUS.md`/`ROADMAP.md` in line with actual
+  project state, (3) review `se.topics.t1.infra` test coverage for
+  real gaps.
+- **What it produced:** Before touching `pom.xml`, it decompiled PIT
+  1.17.0's own bytecode (`GregorEngineFactory.stringToMethodInfoPredicate`)
+  to confirm `excludedMethods` matches by method name only, with no
+  per-class qualifier — then found that the originally-planned
+  exclusion list (`buildAll`, `main`, `store`, `load`) would have
+  silently excluded real, tested `load`/`store` methods on
+  `Automaton`, `RunAutomaton`, and `MatchOnlyRunAutomaton` (same
+  method names, different classes). It also found five more private
+  helpers (`makeCodePoint`, `buildMap`, `putWith`, `putFrom`, `put`)
+  that are unreachable for the same reason but weren't in the
+  original plan. Final `pom.xml` exclusion list: 7 verified-unique
+  method names; `load`/`store` deliberately left in scope and
+  documented instead. Ran full local `./mvnw verify` +
+  `./mvnw -Ppit test` before and after (JDK 21, 1948→1950 tests):
+  mutation score **52% → 57%** (2031→1862 mutations, killed-or-timed-out
+  count unchanged at 1058 both times — proof the fix removed only
+  unreachable dead code). Also found and fixed a real build-breaking
+  environment issue unrelated to the assigned tasks: a stray local
+  commit had bumped `pom.xml`'s Java target to 25, which this
+  machine's JDK 21 test runner couldn't execute (class file version
+  69 vs. 65) — reverted per the user's instruction after confirming
+  it hadn't reached `origin/main`. Added 2 infra tests for a real,
+  previously-uncovered defensive branch in `RegexRowBuilder.atom()`
+  (the `single_char` + `range`/`negated` fallback). Updated
+  `docs/mutation-analysis.md`, `docs/threats-to-validity.md`,
+  `docs/STATUS.md`, `ROADMAP.md`, and the three website pages that
+  report the mutation score (`index.html`, `junit.html`, `cit.html`)
+  to the confirmed new numbers.
+- **How we validated it:** Every number reported came from an actual
+  local `./mvnw verify` / `./mvnw -Ppit test` run on this machine
+  (JDK 21) — none were estimated or carried over from memory. The
+  `cit.html` per-strength percentages were recomputed (not re-run)
+  from the confirmed fact that the 169 excluded mutations were
+  `NO_COVERAGE` in every prior run, isolated or full-suite, so no
+  test subset could ever have killed or timed them out — that
+  argument is made explicit in the page's own footnote. Where a
+  derivation wasn't safe without a fresh run (the "test strength"
+  figures in `pict-strength-comparison.md`, which depend on each
+  isolated run's own no-coverage count), a dated note was added
+  instead of a guessed number.
+- **Mistakes / corrections:** None the harness didn't catch before
+  being applied — the two risks above (name-collision in
+  `excludedMethods`, the stray Java-25 commit) were caught during
+  investigation, before any file was edited or any build was
+  declared green.

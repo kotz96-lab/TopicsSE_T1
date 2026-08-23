@@ -44,14 +44,18 @@ each test covers. If our coverage tracking is inaccurate or
 compilation elides code paths, some mutants may be counted as
 "no coverage" that actually are covered.
 
-**Evidence:** 556 of 2087 mutations (27%) are reported as "no
-coverage" in our baseline PIT run. This is concentrated in
-`Datatypes.buildAll` (not runnable without `src/Unicode.txt`) — which
-we've documented — but a small residual could be a coverage-detection
+**Evidence:** before excluding the unreachable `Datatypes.buildAll`
+subtree (see I-4), 529 of 2031 mutations (26%) were reported as "no
+coverage" in our full-suite PIT run — concentrated in that same
+`Datatypes.buildAll` code (not runnable without `src/Unicode.txt`).
+After excluding it, the residual "no coverage" count is 360 of 1862
+(19%), and a small remainder of that is `Datatypes.load`/`store`/
+`get`, which are also part of the same unreachable subtree but
+couldn't be safely excluded (see I-4) — not a coverage-detection
 artifact.
 
 **Mitigation:** we ran PIT with the default coverage tracking; JaCoCo
-independently reports ≥80% line coverage on the same suite, so our
+independently reports 78% line coverage on the same suite, so our
 tests genuinely reach most code that PIT thinks they do. The
 "no coverage" bucket is dominated by known-unreachable code, not
 artifacts.
@@ -76,18 +80,38 @@ strengthens (not weakens) our null-result finding on CIT.
 
 **What:** `Datatypes.buildAll()` — invoked only from `Datatypes.main` —
 reads a companion resource `src/Unicode.txt` that BRICS ships
-separately and is not part of our vendored source. As a result 180
-of 187 `Datatypes` mutations (~96%) are reported as `NO_COVERAGE` and
-skew the aggregate mutation score down by ~9 percentage points.
+separately and is not part of our vendored source. `buildAll()` also
+calls five private helpers (`makeCodePoint`, `buildMap`, `putWith`,
+`putFrom`, `put`) that are themselves unreachable for the same
+reason. Before mitigation, this dead code contributed 169 of the 529
+"no coverage" mutations in the full-suite run (2031 total mutations,
+52% mutation score).
 
-**Mitigation:** documented as a scoped limitation.
-`Datatypes.buildAll` is compile-time-only in the original library
-(it pre-builds `.aut` files that would be shipped in the jar); the
-runtime paths that consume those `.aut` files are also unreachable
-here, so exercising them would require both `Unicode.txt` and the
-`.aut` outputs. We could vendor `Unicode.txt` in a follow-up
-(§5 requires we document any modification) but chose not to for
-Week 2 to keep the vendored copy of BRICS byte-identical to upstream.
+**Mitigation:** `pom.xml`'s PIT profile now excludes `buildAll`,
+`main`, and those five helpers via `<excludedMethods>`, since none of
+them can execute in this repo without vendoring `Unicode.txt` and
+prebuilt `.aut` resources (a deliberate non-goal — see below). That
+raised the full-suite mutation score from 52% to **57%** (1862
+mutations, 1058 killed-or-timed-out, 360 no-coverage) with the exact
+same 1058 killed-or-timed-out count before and after — confirming the
+exclusion removed only unreachable dead code, not anything a test
+actually exercises. Full before/after numbers in
+[`mutation-analysis.md`](mutation-analysis.md).
+
+`Datatypes.load()`/`store()` remain un-excluded and still contribute
+to the residual "no coverage" count: PIT's `excludedMethods` filter
+matches by method name only, with no class qualifier, and `load`/
+`store` are also the names of real, tested methods on `Automaton`,
+`RunAutomaton`, and `MatchOnlyRunAutomaton` — excluding them would
+have silently dropped mutation coverage on reachable code, which is
+exactly the failure mode this threat is about. `Datatypes.buildAll`
+is compile-time-only in the original library (it pre-builds `.aut`
+files that would be shipped in the jar); the runtime paths that
+consume those `.aut` files are also unreachable here, so exercising
+them would require both `Unicode.txt` and the `.aut` outputs. We
+could vendor `Unicode.txt` in a follow-up (§5 requires we document
+any modification) but chose not to, to keep the vendored copy of
+BRICS byte-identical to upstream.
 
 ---
 
@@ -154,11 +178,11 @@ are explicitly marked as A-drafts pending B-review.
 
 ### C-1. Line coverage overstates the strength of the suite
 
-**What:** JaCoCo reports 84.2% line coverage. Line coverage counts
+**What:** JaCoCo reports 78% line coverage. Line coverage counts
 whether a line was executed, not whether the test asserted anything
 meaningful about that line's behaviour. Our own PIT result
-demonstrates the gap: at 84.2% line coverage the mutation score is
-only 52%. A "high coverage" suite can still miss a lot of bugs.
+demonstrates the gap: at 78% line coverage the mutation score is
+only 57%. A "high coverage" suite can still miss a lot of bugs.
 
 **Mitigation:** we always report line coverage, branch coverage,
 AND mutation score together — never line coverage alone. The §7

@@ -92,15 +92,21 @@
     the others because its
     <a href="threats.html#datatypes-limitation">
     <code>buildAll()</code> path is unreachable without a Unicode data
-    file BRICS doesn't ship</a>.
+    file BRICS doesn't ship</a>. PIT is configured to exclude
+    <code>buildAll()</code>, <code>main()</code>, and five private
+    helpers only <code>buildAll()</code> calls, since none of them
+    can execute here &mdash; JaCoCo's line-coverage numbers above
+    still include them (JaCoCo isn't scoped the same way), which is
+    why this class's <em>line</em> coverage looks lower than its
+    <em>mutation</em> exclusion would suggest.
 </p>
 
 <h2>Mutation score (PIT 1.17.0)</h2>
 
 <div class="callout">
     <p>
-        Full 1948-test suite: <span class="metric big">52.3%</span>
-        mutation detection rate (1062 of 2031 mutations killed
+        Full 1948-test suite: <span class="metric big">56.8%</span>
+        mutation detection rate (1058 of 1862 mutations killed
         or timed-out). Test strength: <span class="metric">70%</span>.
     </p>
     <p class="small">
