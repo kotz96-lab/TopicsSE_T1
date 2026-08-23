@@ -480,3 +480,29 @@ from this file.
   `excludedMethods`, the stray Java-25 commit) were caught during
   investigation, before any file was edited or any build was
   declared green.
+
+### 2026-08-23 — Website generation automation (§14/§15)
+
+- **Tool:** Claude Code (Sonnet 5).
+- **Who:** Itay.
+- **What we asked it to do:** The assignment's §14 automation
+  requirements list "website generation," but `website/*.html` was
+  9 hand-authored files with the nav bar and page shell copy-pasted
+  into each one. Asked for a lightweight generator, explicitly with
+  instructions not to redesign the site's content or layout.
+- **What it produced:** Split the site into `website-src/layout.html`
+  (shared shell) plus one content fragment and one footer fragment
+  per page, and `scripts/generate_website.py` to reassemble them,
+  with a `--check` mode wired into CI.
+- **How we validated it:** Backed up the original `website/*.html`,
+  ran the generator, and diffed every one of the 9 output files
+  against the backup — all 9 came back byte-for-byte identical.
+  That's the actual proof this didn't change the deliverable, not
+  just a visual check.
+- **Mistakes / corrections:** First generation attempt dropped a
+  blank line before each page's closing `</main>` tag (an
+  over-eager `.rstrip("\n")` in the fragment reader stripped more
+  trailing newlines than the extraction had added). Caught by the
+  byte-diff against the backup, not by eyeballing the rendered
+  page — cosmetic in a browser, but would have been a silent,
+  permanent drift from the original had the diff not been run.
