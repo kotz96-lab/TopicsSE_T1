@@ -39,7 +39,7 @@ is documented there.
 | 3    | A     | per-strength PIT comparison; §8 5-mutant analysis; infra tests               | **done** — see [`pict-strength-comparison.md`](pict-strength-comparison.md), [`mutation-analysis.md`](mutation-analysis.md), [`../src/test/java/se/topics/t1/infra/`](../src/test/java/se/topics/t1/infra/) |
 | 3    | A→B   | draft §11 differential + §12 SOLID narrative to unblock B                    | **A drafted, B to review** |
 | 3    | A     | threats-to-validity; README §16 artifact checklist                           | **done** — see [`threats-to-validity.md`](threats-to-validity.md), [`../README.md`](../README.md) |
-| 3    | B     | full metamorphic suite, differential testing, draft refactoring proposals    | **done** — 19 metamorphic properties, 6 differential tests, 4 refactoring proposals finalized |
+| 3    | B     | full metamorphic suite, differential testing, draft refactoring proposals    | **done** — 18 metamorphic properties, 6 differential tests, 4 refactoring proposals finalized |
 | 4    | both  | website, video, cleanup, final analysis                                      | **website done** — 9/9 required sections in `website/`. **Video not yet recorded** — slides (`slides/index.html`) + full narration script (`docs/video-script.md`) are ready; recording + export is the one remaining human step (see [`slides/README.md`](../slides/README.md)) |
 
 ---
@@ -229,7 +229,7 @@ rewrite from scratch — the intent is *unblock*, not *replace*:
 All three items below landed and were finalized in later weeks — kept
 here for history rather than as open TODOs:
 
-1. ~~Sketch ≥5 metamorphic properties~~ — 19 properties in
+1. ~~Sketch ≥5 metamorphic properties~~ — 18 properties in
    [`MetamorphicPropertiesTest.java`](../src/test/java/se/topics/t1/metamorphic/MetamorphicPropertiesTest.java)
    (requirement was ≥10).
 2. ~~First cut of differential tests~~ — 6 tests in
