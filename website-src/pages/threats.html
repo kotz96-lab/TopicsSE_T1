@@ -1,0 +1,145 @@
+
+<h1>Threats to Validity (&sect;21)</h1>
+
+<p class="small">
+    Every claim in this report is subject to threats of one of three
+    kinds: <strong>internal</strong> (does the causal chain from tests
+    to numbers hold within this study?), <strong>external</strong>
+    (would our conclusions generalise?), and <strong>construct</strong>
+    (do our metrics actually measure what we claim they measure?).
+    Full text in
+    <a href="https://github.com/kotz96-lab/TopicsSE_T1/blob/main/docs/threats-to-validity.md">docs/threats-to-validity.md</a>.
+</p>
+
+<h2>Internal validity</h2>
+
+<h3>I-1. Weak oracle in the original PICT-driven tests</h3>
+<p>
+    <code>PictRegexTest</code>'s two oracles (smoke +
+    double-negation on one input) are broad but shallow. This was
+    <em>the</em> confounder in our early CIT experiment. We addressed
+    it by adding a second oracle in <code>PictMetamorphicTest</code>
+    and showing both sets of numbers explicitly (see
+    <a href="cit.html">CIT page</a>).
+</p>
+
+<h3>I-2. PIT non-determinism from timeouts</h3>
+<p>
+    PIT reports 1&ndash;14 <code>TIMED_OUT</code> mutants per run.
+    Which specific mutants time out shifts run-to-run. Total noise
+    is bounded at ~1 percentage point on the aggregate mutation
+    score.
+</p>
+
+<h3 id="pit-filter-bug">I-3. PIT filter-flag bug caught late</h3>
+<div class="callout warn">
+    An earlier version of the per-strength CIT experiment used
+    <code>-Dgroups=&lt;tag&gt;</code> (Surefire's filter) to isolate
+    interaction strengths. PIT uses its own JUnit engine and silently
+    ignores the Surefire flag &mdash; so every "per-strength" PIT
+    run was actually running the full 1948-test suite. The apparent
+    "flat" mutation scores we initially reported (~50.7% across all
+    strengths) were the full-suite score with PIT run-to-run noise.
+    Fixed by switching to <code>-DincludedGroups=&lt;tag&gt;</code>
+    (PIT's own filter). All CIT numbers on this site are from the
+    corrected runs; see the <a href="ai-tools.html">AI Tools page</a>
+    for the correction story.
+</div>
+
+<h3 id="datatypes-limitation">I-4. <code>Datatypes.buildAll</code> unreachable</h3>
+<p>
+    BRICS' <code>Datatypes.buildAll</code> reads a companion resource
+    <code>src/Unicode.txt</code> not shipped in our vendored source.
+    Result: 180 of 187 mutations in that class are
+    <code>NO_COVERAGE</code>, pulling the aggregate mutation score
+    down by ~9 percentage points. Fixable by vendoring the file, but
+    doing so would count as a "modification to BRICS" that changes
+    the surface being evaluated.
+</p>
+
+<h2>External validity</h2>
+
+<h3>E-1. Single-commit case study</h3>
+<p>
+    All findings apply to BRICS commit <code>582d8f3</code>. The
+    three bugs we identified may not exist in earlier or later
+    commits. Commit hash pinned in
+    <a href="https://github.com/kotz96-lab/TopicsSE_T1/blob/main/BRICS_COMMIT">BRICS_COMMIT</a>.
+</p>
+
+<h3>E-2. Scope of quantitative claims</h3>
+<p>
+    All coverage / mutation numbers are scoped to
+    <code>dk.brics.automaton.*</code>. We don't claim these
+    conclusions transfer to other regex libraries.
+</p>
+
+<h3>E-3. Development environment (Windows + Temurin)</h3>
+<p>
+    All development happened on Windows 11 + Temurin JDK 21.0.8.9.
+    PICT is a Windows binary. Mitigated by GitHub Actions CI running
+    the JUnit + PIT pipeline on Ubuntu-latest and verifying the same
+    numbers reproduce.
+</p>
+
+<h3>E-4. AI-authored tests may share systematic blind spots</h3>
+<p>
+    Most of the test suite was AI-authored (see
+    <a href="ai-tools.html">AI Tools</a>). If the AI has a systematic
+    weakness (always ASCII, always short inputs, forgets Unicode
+    edge cases), that bias is baked into the whole suite. Mitigated
+    by human review at each session and by the PIT filter-bug
+    correction &mdash; which specifically shows a case where human
+    review caught something the AI missed.
+</p>
+
+<h2>Construct validity</h2>
+
+<h3>C-1. Line coverage overstates suite strength</h3>
+<p>
+    Our 77% line coverage vs 51% mutation score is itself evidence
+    of this: high coverage doesn't guarantee a suite that catches
+    bugs. We report both metrics side-by-side rather than relying
+    on line coverage alone.
+</p>
+
+<h3>C-2. Mutation score is not equivalence-adjusted</h3>
+<p>
+    PIT reports raw kill percentage. Some fraction of surviving
+    mutants are equivalent (semantically identical to the original,
+    unkillable). Our 5-mutant analysis rates one of the five as
+    equivalent under our oracle. Rate probably similar (~20%) across
+    the population, which would put the effective mutation score
+    closer to ~62%.
+</p>
+
+<h3>C-3. Kill rate is a proxy, not a direct fault-detection measure</h3>
+<p>
+    Killing a mutant means a test noticed a <em>change</em>, not
+    that the test would notice a <em>real bug</em>. We mitigate by
+    reporting a diverse mix of testing techniques (example-based,
+    property-based, differential, mutation) &mdash; different
+    flavours catch different fault classes. The
+    <code>Datatypes.exists</code> NPE we found came from
+    coverage-guided test writing, not mutation.
+</p>
+
+<h3>C-4. PICT model design bias</h3>
+<p>
+    Our 7 parameters and 4 constraints reflect <em>our</em>
+    judgment about which BRICS input dimensions matter. Surrogate
+    pairs, control characters, extremely deep nesting are outside
+    the model. Model is versioned and each parameter has a
+    "values NOT chosen" section in
+    <a href="https://github.com/kotz96-lab/TopicsSE_T1/blob/main/docs/pict-rationale.md">docs/pict-rationale.md</a>.
+</p>
+
+<h2>What would strengthen this study</h2>
+
+<ol>
+    <li>Vendor <code>src/Unicode.txt</code> and re-run PIT with <code>Datatypes.buildAll</code> reachable &mdash; likely lifts mutation score by ~5&ndash;8 points.</li>
+    <li>Second independent reviewer rates each of the ~450 surviving mutants for equivalence, producing a corrected score.</li>
+    <li>Run the same suite against a second BRICS commit for consistency.</li>
+    <li>Extend the PICT model with Unicode surrogate-pair alphabets.</li>
+</ol>
+

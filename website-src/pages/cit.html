@@ -1,0 +1,209 @@
+
+<h1>Combinatorial Interaction Testing (&sect;9)</h1>
+
+<p class="small">
+    This is the single largest chunk of the assignment (25 points).
+    We use <a href="https://github.com/microsoft/pict">Microsoft PICT</a>
+    v3.7.4 to generate test inputs at 2-wise, 3-wise, and 4-wise
+    interaction strengths, and integrate them into JUnit5 via
+    <code>@ParameterizedTest</code>+<code>@CsvFileSource</code>.
+</p>
+
+<h2>Model size vs full cross-product</h2>
+
+<p>
+    7 parameters, full cross-product = 12,960 configurations. PICT
+    picks a subset covering every pair (or triple, or quadruple) of
+    values at least once:
+</p>
+
+<table>
+    <tr><th>Interaction strength</th><th>PICT rows</th><th>vs full 12,960</th></tr>
+    <tr><td>2-wise (pairwise)</td>  <td><strong>34</strong></td>  <td>99.7% smaller</td></tr>
+    <tr><td>3-wise</td>             <td><strong>152</strong></td> <td>98.8% smaller</td></tr>
+    <tr><td>4-wise</td>             <td><strong>568</strong></td> <td>95.6% smaller</td></tr>
+</table>
+
+<h2>The model</h2>
+
+<p>
+    <a href="https://github.com/kotz96-lab/TopicsSE_T1/blob/main/pict/models/regex.pict">pict/models/regex.pict</a>
+    has 7 parameters and 4 constraints:
+</p>
+
+<pre><code>Alphabet:         ascii_lower, ascii_alnum, unicode_bmp, single_char
+CharClassKind:    single, range, set, negated
+Quantifier:       none, star, plus, optional, bounded
+AlternationDepth: 0, 1, 2
+NestingDepth:     0, 1, 2
+Operation:        toAutomaton, determinize, minimize, complement, union, intersection
+InputLength:      empty, short, medium
+
+# Constraints
+IF [Alphabet] = "single_char" THEN [CharClassKind] IN {"single", "set"};
+IF [Alphabet] = "single_char" THEN [AlternationDepth] IN {0, 1};
+IF [CharClassKind] = "negated" THEN [Alphabet] &lt;&gt; "single_char";
+IF [NestingDepth] = 2 AND [AlternationDepth] = 0 THEN [Quantifier] &lt;&gt; "none";</code></pre>
+
+<p class="small">
+    Full parameter-by-parameter rationale (why these values, what BRICS
+    code paths each targets, why we excluded surrogate pairs / control
+    characters / anchors) in
+    <a href="https://github.com/kotz96-lab/TopicsSE_T1/blob/main/docs/pict-rationale.md">docs/pict-rationale.md</a>.
+</p>
+
+<h2>Integration &mdash; how each PICT row becomes a test</h2>
+
+<p>
+    <a href="https://github.com/kotz96-lab/TopicsSE_T1/blob/main/src/test/java/se/topics/t1/pict/RegexRowBuilder.java">RegexRowBuilder.java</a>
+    deterministically maps a row of abstract parameter values to a
+    concrete BRICS regex string plus a test input. Same row always
+    produces the same regex &mdash; reproducibility guaranteed.
+</p>
+
+<p>
+    Two consumer test classes drive the rows through PIT:
+</p>
+
+<ul>
+    <li>
+        <a href="https://github.com/kotz96-lab/TopicsSE_T1/blob/main/src/test/java/se/topics/t1/pict/PictRegexTest.java">PictRegexTest</a>
+        &mdash; <strong>weak oracle</strong>: per row, asserts
+        (a) pipeline compiles and runs without throwing, and
+        (b) <code>A.complement().complement().run(input) == A.run(input)</code>
+        on one input.
+    </li>
+    <li>
+        <a href="https://github.com/kotz96-lab/TopicsSE_T1/blob/main/src/test/java/se/topics/t1/pict/PictMetamorphicTest.java">PictMetamorphicTest</a>
+        &mdash; <strong>strong oracle</strong>: per row, asserts five
+        metamorphic properties (double complement, union/intersection
+        idempotence, minimize preserves, determinize preserves) on
+        five sampled inputs. 25 assertions per PICT row.
+    </li>
+</ul>
+
+<h2>The 3&times;2 grid</h2>
+
+<p>
+    Six PIT runs. Each cell is one strength &times; oracle combination
+    in isolation, using PIT's <code>-DincludedGroups=</code> filter
+    (Surefire's <code>-Dgroups=</code> silently doesn't work &mdash;
+    see <a href="ai-tools.html">AI Tools</a> for the correction story).
+</p>
+
+<table>
+    <tr>
+        <th>Oracle</th>
+        <th class="right">2-wise (34 rows)</th>
+        <th class="right">3-wise (152 rows)</th>
+        <th class="right">4-wise (568 rows)</th>
+    </tr>
+    <tr>
+        <td><strong>Weak</strong> (smoke + double-neg, 1 input)</td>
+        <td class="right">203 detected (10.9%)</td>
+        <td class="right">214 detected (11.5%)</td>
+        <td class="right">214 detected (11.5%)</td>
+    </tr>
+    <tr>
+        <td><strong>Strong</strong> (5 metamorphic props, 5 inputs)</td>
+        <td class="right"><strong>222 (11.9%)</strong></td>
+        <td class="right"><strong>240 (12.9%)</strong></td>
+        <td class="right"><strong>242 (13.0%)</strong></td>
+    </tr>
+</table>
+
+<p class="small">
+    Numbers are <em>detections</em> (killed + timed-out) out of ~1862
+    mutations PIT produces after excluding <code>Datatypes</code>'
+    unreachable build-time code (see <a href="junit.html">JUnit5
+    Suite</a>) &mdash; down from ~2031 before that scope fix. The
+    absolute detection counts are unchanged by the fix, since the
+    169 excluded mutations were unreachable by construction (no test
+    subset, however small, could ever have killed or timed them out);
+    only the percentages shift because the denominator shrank. We
+    report detection rather than raw kill count because with
+    34&ndash;568 tests to run per mutant, PIT's default timeout
+    classification differs from run to run &mdash; counting killed +
+    timed-out makes the numbers monotonic and reflects the intuition
+    that "a test made the mutant hang" is a real detection signal.
+</p>
+
+<h3>Test strength (detections among mutants the tests actually reach)</h3>
+
+<table>
+    <tr>
+        <th>Oracle</th>
+        <th class="right">2-wise</th>
+        <th class="right">3-wise</th>
+        <th class="right">4-wise</th>
+    </tr>
+    <tr>
+        <td>Weak</td>
+        <td class="right">42.7%</td>
+        <td class="right">44.4%</td>
+        <td class="right">44.2%</td>
+    </tr>
+    <tr>
+        <td><strong>Strong</strong></td>
+        <td class="right"><strong>46.2%</strong></td>
+        <td class="right"><strong>49.9%</strong></td>
+        <td class="right"><strong>50.3%</strong></td>
+    </tr>
+</table>
+
+<p class="small">
+    Absolute scores are &lt;12% because the isolated runs only touch
+    ~24% of BRICS' code &mdash; classes like <code>Datatypes</code>,
+    <code>AutomatonMatcher</code>, <code>StringUnionOperations</code>
+    aren't exercised by the PICT pipeline at all, so ~76% of mutants
+    show up as <code>NO_COVERAGE</code>. Combined with the 180 hand
+    tests, the full 1948-test suite reaches 52.3% detection rate.
+</p>
+
+<h3>Deltas</h3>
+
+<table>
+    <tr><th>Change</th><th>Weak &Delta;</th><th>Strong &Delta;</th></tr>
+    <tr><td>2-wise &rarr; 3-wise</td>            <td>+11</td>  <td>+18</td></tr>
+    <tr><td>3-wise &rarr; 4-wise</td>            <td>0</td>    <td>+2</td></tr>
+    <tr><td>Weak &rarr; Strong at each strength</td><td colspan="2">+19 (2-wise), +26 (3-wise), +28 (4-wise)</td></tr>
+</table>
+
+<p>
+    Weak-oracle strength curve is flat. Strong-oracle jumps at 3-wise
+    then plateaus &mdash; 3-wise catches most of what 4-wise would.
+    Weak-vs-strong gap widens with strength: the two dimensions
+    compound.
+</p>
+
+<h2>Practical takeaway</h2>
+
+<p>
+    Strong &times; 3-wise (229 kills) beats weak &times; 4-wise
+    (204 kills) despite 4-wise having ~4&times; the rows. Oracle
+    strength matters more than interaction strength; the sweet spot
+    is a strong oracle at 3-wise.
+</p>
+
+<h2>Reproducing the CIT experiment</h2>
+
+<pre><code># Regenerate PICT tables (needs tools/pict.exe or pict on PATH)
+pwsh scripts/generate-pict.ps1
+
+# Individual per-strength PIT runs &mdash; each ~2-20 minutes
+./mvnw -Ppit test -DincludedGroups=pict-2wise         # weak,   2-wise
+./mvnw -Ppit test -DincludedGroups=pict-3wise         # weak,   3-wise
+./mvnw -Ppit test -DincludedGroups=pict-4wise         # weak,   4-wise
+./mvnw -Ppit test -DincludedGroups=pict-strong-2wise  # strong, 2-wise
+./mvnw -Ppit test -DincludedGroups=pict-strong-3wise  # strong, 3-wise
+./mvnw -Ppit test -DincludedGroups=pict-strong-4wise  # strong, 4-wise</code></pre>
+
+<div class="callout warn">
+    <strong>Careful:</strong> <code>-Dgroups=</code> is a Surefire
+    flag; PIT ignores it. Use <code>-DincludedGroups=</code>. An
+    earlier version of this experiment used the wrong flag and
+    produced apparently-valid but scientifically-meaningless results;
+    see the <a href="ai-tools.html#pit-filter-bug">AI Tools page</a>
+    for the correction story.
+</div>
+

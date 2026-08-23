@@ -1,0 +1,120 @@
+
+<h1>JUnit5 Test Suite (&sect;6 and &sect;7)</h1>
+
+<p class="small">
+    Assignment &sect;6 requires "a JUnit5 test suite for the complete
+    library." &sect;7 requires we evaluate its quality by line coverage,
+    branch coverage, mutation score, test count, assertion count, and
+    execution time, plus a discussion of readability and flakiness.
+</p>
+
+<h2>What we built</h2>
+
+<p>
+    180 unit tests across 13 test classes covering every public class
+    in <code>dk.brics.automaton.*</code>. Most were AI-drafted and
+    then reviewed / adjusted; the PICT, metamorphic, differential, and
+    infra suites on top bring the total to <strong>1948</strong>.
+</p>
+
+<h3>Test class inventory</h3>
+
+<table>
+    <tr>
+        <th>Class under test</th>
+        <th>Test class</th>
+        <th>Tests</th>
+    </tr>
+    <tr><td><code>RegExp</code>          </td><td><code>RegExpTest</code>          </td><td>~17</td></tr>
+    <tr><td><code>Automaton</code>       </td><td><code>AutomatonTest</code>       </td><td>~24</td></tr>
+    <tr><td><code>BasicAutomata</code>   </td><td><code>BasicAutomataTest</code>   </td><td>~18</td></tr>
+    <tr><td><code>BasicOperations</code> </td><td><code>BasicOperationsTest</code> </td><td>~22</td></tr>
+    <tr><td><code>MinimizationOperations</code></td><td><code>MinimizationOperationsTest</code></td><td>~8</td></tr>
+    <tr><td><code>SpecialOperations</code></td><td><code>SpecialOperationsTest</code></td><td>~16</td></tr>
+    <tr><td><code>ShuffleOperations</code></td><td><code>ShuffleOperationsTest</code></td><td>~6</td></tr>
+    <tr><td><code>RunAutomaton</code>    </td><td><code>RunAutomatonTest</code>    </td><td>~9</td></tr>
+    <tr><td><code>AutomatonMatcher</code></td><td><code>AutomatonMatcherTest</code></td><td>~7</td></tr>
+    <tr><td><code>MatchOnlyRunAutomaton</code></td><td><code>MatchOnlyRunAutomatonTest</code></td><td>~9</td></tr>
+    <tr><td><code>State</code>           </td><td><code>StateTest</code>           </td><td>10</td></tr>
+    <tr><td><code>Transition</code>      </td><td><code>TransitionTest</code>      </td><td>9</td></tr>
+    <tr><td><code>Datatypes</code>       </td><td><code>DatatypesTest</code>       </td><td>~11</td></tr>
+</table>
+
+<h2>Coverage results (JaCoCo 0.8.12)</h2>
+
+<p>
+    Measured on the vendored BRICS commit <code>582d8f3</code>, Java
+    Temurin 21.0.8.9, running the full 1948-test suite via
+    <code>./mvnw verify</code>.
+</p>
+
+<table>
+    <tr><th>Metric</th><th>Percentage</th><th>Absolute</th></tr>
+    <tr><td>Line coverage</td>       <td><span class="metric good">77.2%</span></td> <td>2401 / 3110 lines</td></tr>
+    <tr><td>Branch coverage</td>     <td><span class="metric">70.6%</span></td>      <td>1207 / 1709 branches</td></tr>
+    <tr><td>Method coverage</td>     <td><span class="metric">78.8%</span></td>      <td>293 / 372 methods</td></tr>
+    <tr><td>Class coverage</td>      <td><span class="metric good">96.2%</span></td> <td>25 / 26 classes</td></tr>
+    <tr><td>Instruction coverage</td><td><span class="metric">73.2%</span></td>      <td>11883 / 16228 instructions</td></tr>
+</table>
+
+<p class="small">
+    Only <code>DatatypesAutomatonProvider</code> (a 13-line adapter
+    never called by our test paths) sits at 0% class coverage. The
+    <code>Datatypes</code> class shows lower per-class coverage than
+    the others because its
+    <a href="threats.html#datatypes-limitation">
+    <code>buildAll()</code> path is unreachable without a Unicode data
+    file BRICS doesn't ship</a>. PIT is configured to exclude
+    <code>buildAll()</code>, <code>main()</code>, and five private
+    helpers only <code>buildAll()</code> calls, since none of them
+    can execute here &mdash; JaCoCo's line-coverage numbers above
+    still include them (JaCoCo isn't scoped the same way), which is
+    why this class's <em>line</em> coverage looks lower than its
+    <em>mutation</em> exclusion would suggest.
+</p>
+
+<h2>Mutation score (PIT 1.17.0)</h2>
+
+<div class="callout">
+    <p>
+        Full 1948-test suite: <span class="metric big">56.8%</span>
+        mutation detection rate (1058 of 1862 mutations killed
+        or timed-out). Test strength: <span class="metric">70%</span>.
+    </p>
+    <p class="small">
+        We report <em>detection rate</em> (killed + timed-out) rather
+        than raw kill count because timeouts are also a real detection
+        signal &mdash; PIT halted because the mutant made a test hang,
+        which means the test noticed something wrong. Detailed per-class
+        breakdown and 5-mutant analysis on the
+        <a href="design.html">design page</a> and in
+        <a href="https://github.com/kotz96-lab/TopicsSE_T1/blob/main/docs/mutation-analysis.md">docs/mutation-analysis.md</a>.
+    </p>
+</div>
+
+<h2>Bugs found while writing tests (not by mutation testing)</h2>
+
+<p>
+    Three real BRICS defects were surfaced by <em>coverage-guided</em>
+    test writing &mdash; PIT would not have found them because mutation
+    testing evaluates the suite against the code as written, not the
+    code itself. All three became formal refactoring proposals in
+    <a href="design.html">&sect;12</a>.
+</p>
+
+<ol>
+    <li><code>Datatypes.exists()</code> throws NPE for missing resources instead of returning <code>false</code>.</li>
+    <li><code>isTotal()</code> is a structural predicate masquerading as a semantic one.</li>
+    <li><code>SpecialOperations.getFiniteStrings(a, limit)</code> silently returns <code>null</code> on overflow.</li>
+</ol>
+
+<h2>Reproducing this section</h2>
+
+<pre><code>./mvnw verify
+# Then open: target/site/jacoco/index.html</code></pre>
+
+<p class="small">
+    See <a href="reproducibility.html">Reproducibility</a> for the full
+    artifact checklist and version pinning.
+</p>
+

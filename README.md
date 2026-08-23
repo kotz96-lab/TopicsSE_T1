@@ -84,11 +84,29 @@ git -C .upstream/dk.brics.automaton rev-parse HEAD > BRICS_COMMIT
 ├── pict/
 │   ├── models/                          # .pict input-space models
 │   └── generated/                       # 2/3/4-wise tables (committed)
-├── scripts/                             # automation (PowerShell)
+├── scripts/                             # automation (PowerShell + Python)
 ├── docs/                                # SOLID notes, refactoring proposals, etc.
-├── website/                             # static HTML report (B)
+├── website-src/                         # website templates + per-page fragments
+├── website/                             # generated static HTML report (see below)
 └── .github/workflows/ci.yml             # GitHub Actions: build + PIT
 ```
+
+### Website generation (§14/§15)
+
+`website/*.html` is generated from `website-src/` — one shared shell
+(`website-src/layout.html`: nav, head, footer credit line) plus one
+`<main>` content fragment and one footer-links fragment per page
+under `website-src/pages/` and `website-src/footers/`. Regenerate
+with:
+
+```pwsh
+python3 scripts/generate_website.py          # writes website/*.html
+python3 scripts/generate_website.py --check  # exits 1 if website/ is stale, doesn't write
+```
+
+Edit page content under `website-src/pages/<slug>.html`, not
+`website/*.html` directly — the generated files get overwritten on
+the next run.
 
 ## Work split
 
@@ -128,10 +146,10 @@ either the file or the command that produces it.
 | PIT mutation reports            | `target/pit-reports/index.html`                                       | `./mvnw -Ppit test`                                              |
 | Coverage reports (JaCoCo)       | `target/site/jacoco/index.html`                                       | `./mvnw verify`                                                  |
 | Software-design analysis        | [`docs/refactoring-proposals.md`](docs/refactoring-proposals.md), [`stuff_for_report.md`](stuff_for_report.md) | authored — see also [`docs/mutation-analysis.md`](docs/mutation-analysis.md) |
-| SOLID evaluation notes          | *(Partner B — pending)*                                               | authored                                                         |
+| SOLID evaluation notes          | [`docs/solid-analysis.md`](docs/solid-analysis.md)                    | authored                                                         |
 | Refactoring proposals (≥3)      | [`docs/refactoring-proposals.md`](docs/refactoring-proposals.md)      | authored                                                         |
 | Scripts                         | [`scripts/`](scripts/)                                                | committed                                                        |
-| Website                         | *(Partner B — pending, Week 4)*                                       | authored                                                         |
+| Website                         | [`website/`](website/)                                                | `python3 scripts/generate_website.py` from [`website-src/`](website-src/) |
 | README                          | *this file*                                                           | committed                                                        |
 | Threats to validity             | [`docs/threats-to-validity.md`](docs/threats-to-validity.md)          | authored                                                         |
 | AI-tool usage log (§21)         | [`docs/AI_TOOLS.md`](docs/AI_TOOLS.md)                                | appended every session                                           |

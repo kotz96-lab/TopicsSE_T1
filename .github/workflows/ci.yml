@@ -27,6 +27,9 @@ jobs:
       - name: Build + JUnit5 + JaCoCo
         run: ./mvnw -B --no-transfer-progress verify
 
+      - name: Check website/ is in sync with website-src/
+        run: python3 scripts/generate_website.py --check
+
       - name: Upload coverage report
         if: always()
         uses: actions/upload-artifact@v4
