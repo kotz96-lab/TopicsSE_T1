@@ -39,8 +39,8 @@ is documented there.
 | 3    | A     | per-strength PIT comparison; §8 5-mutant analysis; infra tests               | **done** — see [`pict-strength-comparison.md`](pict-strength-comparison.md), [`mutation-analysis.md`](mutation-analysis.md), [`../src/test/java/se/topics/t1/infra/`](../src/test/java/se/topics/t1/infra/) |
 | 3    | A→B   | draft §11 differential + §12 SOLID narrative to unblock B                    | **A drafted, B to review** |
 | 3    | A     | threats-to-validity; README §16 artifact checklist                           | **done** — see [`threats-to-validity.md`](threats-to-validity.md), [`../README.md`](../README.md) |
-| 3    | B     | full metamorphic suite, differential testing, draft refactoring proposals    | drafts from A pending review |
-| 4    | both  | website, video, cleanup, final analysis                                      | not started |
+| 3    | B     | full metamorphic suite, differential testing, draft refactoring proposals    | **done** — 19 metamorphic properties, 6 differential tests, 4 refactoring proposals finalized |
+| 4    | both  | website, video, cleanup, final analysis                                      | **website done** — 9/9 required sections in `website/`. **Video not yet recorded** — slides (`slides/index.html`) + full narration script (`docs/video-script.md`) are ready; recording + export is the one remaining human step (see [`slides/README.md`](../slides/README.md)) |
 
 ---
 
@@ -224,19 +224,56 @@ rewrite from scratch — the intent is *unblock*, not *replace*:
   (not synthetic) — bug in `Datatypes.exists`, API-clarity issue in
   `isTotal`, null-return convention in `getFiniteStrings`.
 
-### Person B — Week 2 (still open)
+### Person B — Week 2 (done)
 
-1. Sketch ≥5 metamorphic properties as JUnit 5 tests under
-   [`metamorphic/`](../src/test/java/se/topics/t1/metamorphic/). Use
-   generators from `se.topics.t1.infra` (A will grow that package
-   alongside).
-2. First cut of differential tests vs `java.util.regex` in
-   [`differential/`](../src/test/java/se/topics/t1/differential/).
-3. Start collecting SOLID observations while reading BRICS source —
-   drop notes into `docs/solid-notes.md` (create it).
+All three items below landed and were finalized in later weeks — kept
+here for history rather than as open TODOs:
+
+1. ~~Sketch ≥5 metamorphic properties~~ — 19 properties in
+   [`MetamorphicPropertiesTest.java`](../src/test/java/se/topics/t1/metamorphic/MetamorphicPropertiesTest.java)
+   (requirement was ≥10).
+2. ~~First cut of differential tests~~ — 6 tests in
+   [`DifferentialTest.java`](../src/test/java/se/topics/t1/differential/DifferentialTest.java).
+3. ~~SOLID observations~~ — full narrative in
+   [`solid-analysis.md`](solid-analysis.md), not a separate notes file.
 
 Every AI-tool use → append to [`docs/AI_TOOLS.md`](AI_TOOLS.md). §21 asks
 for evidence of what we asked, what we got, and what we fixed.
+
+---
+
+## Current state (as of 2026-08-23 — this pass)
+
+A polish/correctness pass found and fixed real issues beyond the
+stale-docs problem this section used to describe:
+
+- **Local build was broken** by an environment issue (a stray commit
+  bumped `pom.xml`'s `maven.compiler.release` to 25, which this
+  machine's JDK 21 test runner can't execute — class file version 69
+  vs. the 65 the JRE supports). Reverted; the project targets **Java
+  21** as originally documented. If `./mvnw verify` or `-Ppit test`
+  fail with a `NoClassDefFoundError` avalanche or "class file version
+  NN, this JRE only recognizes up to 65", check `JAVA_HOME` first.
+- **Confirmed live numbers** (`./mvnw verify` + `./mvnw -Ppit test`,
+  JDK 21, 2026-08-23): **1948 tests**, **73% instruction / 70% branch
+  / 78% line / 79% method** coverage (JaCoCo), **2031 mutations, 1058
+  killed → 52% mutation score, 529 no-coverage, 70% test strength**
+  (PIT, before the `Datatypes` exclusion below). These are the real
+  current numbers — treat the 84.2%/70.8%/82% coverage figures
+  elsewhere in this file as the Week-2 snapshot they are, superseded
+  by [`pict-strength-comparison.md`](pict-strength-comparison.md) and
+  by this run.
+- **PIT scope fixed**: `Datatypes.buildAll`/`main` and five private
+  helpers only `buildAll` calls (`makeCodePoint`, `buildMap`,
+  `putWith`, `putFrom`, `put`) are genuinely unreachable (need a
+  `src/Unicode.txt` and `.aut` classpath resources this repo doesn't
+  ship) and are now excluded from PIT via `<excludedMethods>` in
+  `pom.xml`. `load`/`store` were deliberately **not** added to that
+  list — PIT's `excludedMethods` matches by method name only, and
+  those names collide with real, tested methods on `Automaton`,
+  `RunAutomaton`, and `MatchOnlyRunAutomaton`. See
+  [`mutation-analysis.md`](mutation-analysis.md) for the full
+  before/after numbers and rationale.
 
 ---
 

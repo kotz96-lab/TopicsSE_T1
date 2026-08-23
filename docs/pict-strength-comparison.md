@@ -7,6 +7,21 @@ six PIT runs — three interaction strengths (2-wise, 3-wise, 4-wise)
 crossed with two oracle strengths (weak, strong) — each isolated
 via PIT's own `-DincludedGroups=` filter.*
 
+> **Note (2026-08-23):** `pom.xml`'s PIT profile was since scoped to
+> exclude `Datatypes.buildAll`/`main` and five helpers only
+> `buildAll` calls — genuinely unreachable build-time code (see
+> [`mutation-analysis.md`](mutation-analysis.md)). That drops PIT's
+> total mutation count from 2031 to 1862 project-wide. The raw
+> **kill counts** below are unaffected (those 169 mutations were
+> `NO_COVERAGE` in every run, isolated or full-suite, so no test
+> subset could ever have killed them) — but this doc's **percentages
+> and "test strength" figures were not recomputed against the new
+> denominator**, since test strength here depends on each isolated
+> run's own no-coverage count, which we have not re-measured for all
+> six runs. Treat the percentages/test-strength numbers below as the
+> pre-fix baseline; the current full-suite headline number is **57%**
+> (`mutation-analysis.md`), up from the 51% referenced here.
+
 ---
 
 ## Experimental setup

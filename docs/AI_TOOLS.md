@@ -424,3 +424,131 @@ from this file.
   correctness. AI tooling still needs a human reviewer to check
   that outputs answer the question the experiment was designed to
   answer.
+
+### 2026-08-23 — Polish pass: PIT scope fix, stale-docs update, infra test gap
+
+- **Tool:** Claude Code (Sonnet 5).
+- **Who:** Itay.
+- **What we asked it to do:** A scoped correctness pass on an
+  already-complete project: (1) fix PIT counting mutations inside
+  `Datatypes.buildAll()`'s dead subtree, which deflated the mutation
+  score, (2) bring `docs/STATUS.md`/`ROADMAP.md` in line with actual
+  project state, (3) review `se.topics.t1.infra` test coverage for
+  real gaps.
+- **What it produced:** Before touching `pom.xml`, it decompiled PIT
+  1.17.0's own bytecode (`GregorEngineFactory.stringToMethodInfoPredicate`)
+  to confirm `excludedMethods` matches by method name only, with no
+  per-class qualifier — then found that the originally-planned
+  exclusion list (`buildAll`, `main`, `store`, `load`) would have
+  silently excluded real, tested `load`/`store` methods on
+  `Automaton`, `RunAutomaton`, and `MatchOnlyRunAutomaton` (same
+  method names, different classes). It also found five more private
+  helpers (`makeCodePoint`, `buildMap`, `putWith`, `putFrom`, `put`)
+  that are unreachable for the same reason but weren't in the
+  original plan. Final `pom.xml` exclusion list: 7 verified-unique
+  method names; `load`/`store` deliberately left in scope and
+  documented instead. Ran full local `./mvnw verify` +
+  `./mvnw -Ppit test` before and after (JDK 21, 1948→1950 tests):
+  mutation score **52% → 57%** (2031→1862 mutations, killed-or-timed-out
+  count unchanged at 1058 both times — proof the fix removed only
+  unreachable dead code). Also found and fixed a real build-breaking
+  environment issue unrelated to the assigned tasks: a stray local
+  commit had bumped `pom.xml`'s Java target to 25, which this
+  machine's JDK 21 test runner couldn't execute (class file version
+  69 vs. 65) — reverted per the user's instruction after confirming
+  it hadn't reached `origin/main`. Added 2 infra tests for a real,
+  previously-uncovered defensive branch in `RegexRowBuilder.atom()`
+  (the `single_char` + `range`/`negated` fallback). Updated
+  `docs/mutation-analysis.md`, `docs/threats-to-validity.md`,
+  `docs/STATUS.md`, `ROADMAP.md`, and the three website pages that
+  report the mutation score (`index.html`, `junit.html`, `cit.html`)
+  to the confirmed new numbers.
+- **How we validated it:** Every number reported came from an actual
+  local `./mvnw verify` / `./mvnw -Ppit test` run on this machine
+  (JDK 21) — none were estimated or carried over from memory. The
+  `cit.html` per-strength percentages were recomputed (not re-run)
+  from the confirmed fact that the 169 excluded mutations were
+  `NO_COVERAGE` in every prior run, isolated or full-suite, so no
+  test subset could ever have killed or timed them out — that
+  argument is made explicit in the page's own footnote. Where a
+  derivation wasn't safe without a fresh run (the "test strength"
+  figures in `pict-strength-comparison.md`, which depend on each
+  isolated run's own no-coverage count), a dated note was added
+  instead of a guessed number.
+- **Mistakes / corrections:** None the harness didn't catch before
+  being applied — the two risks above (name-collision in
+  `excludedMethods`, the stray Java-25 commit) were caught during
+  investigation, before any file was edited or any build was
+  declared green.
+
+### 2026-08-23 — Website generation automation (§14/§15)
+
+- **Tool:** Claude Code (Sonnet 5).
+- **Who:** Itay.
+- **What we asked it to do:** The assignment's §14 automation
+  requirements list "website generation," but `website/*.html` was
+  9 hand-authored files with the nav bar and page shell copy-pasted
+  into each one. Asked for a lightweight generator, explicitly with
+  instructions not to redesign the site's content or layout.
+- **What it produced:** Split the site into `website-src/layout.html`
+  (shared shell) plus one content fragment and one footer fragment
+  per page, and `scripts/generate_website.py` to reassemble them,
+  with a `--check` mode wired into CI.
+- **How we validated it:** Backed up the original `website/*.html`,
+  ran the generator, and diffed every one of the 9 output files
+  against the backup — all 9 came back byte-for-byte identical.
+  That's the actual proof this didn't change the deliverable, not
+  just a visual check.
+- **Mistakes / corrections:** First generation attempt dropped a
+  blank line before each page's closing `</main>` tag (an
+  over-eager `.rstrip("\n")` in the fragment reader stripped more
+  trailing newlines than the extraction had added). Caught by the
+  byte-diff against the backup, not by eyeballing the rendered
+  page — cosmetic in a browser, but would have been a silent,
+  permanent drift from the original had the diff not been run.
+
+### 2026-08-23 — Requirements gap analysis + closing the 3 gaps found
+
+- **Tool:** Claude Code (Sonnet 5).
+- **Who:** Itay.
+- **What we asked it to do:** Re-read the assignment PDF section by
+  section against the actual repo content (not the docs' own claims
+  about themselves) and report any genuine gap.
+- **What it produced:** Found three real gaps and closed all three:
+  1. **§7 test-suite quality discussion** — `junit.html` stated the
+     assignment requires "assertion count, execution time,
+     readability, flakiness" discussion but didn't actually contain
+     any of it. Added a real accounting: 558 assertion call-sites in
+     source vs. 20,000+ runtime assertion evaluations (parameterized
+     tests run the same assertion line many times — explained why
+     both numbers matter), measured execution time from an actual
+     `./mvnw verify` run, and a flakiness discussion grounded in a
+     grep for `Thread.sleep`/unseeded `Random`/wall-clock reads
+     across the whole test tree (none found).
+  2. **§16 "static-analysis reports"** — never run. Added SpotBugs
+     4.10.4.0 as an opt-in `-Pspotbugs` Maven profile scoped to
+     `dk.brics.automaton.*` only (`spotbugs-include.xml`, same
+     rationale as PIT's `targetClasses`). Ran it for real: 33
+     findings, written up in `docs/static-analysis.md` with the
+     ones that corroborate or extend the existing manual SOLID
+     analysis (mutable-state exposure, an overridable-method-in-
+     constructor LSP violation, a genuinely new `equals()`
+     null-handling bug in a package-private class our public-API
+     tests can't reach).
+  3. **§13 — the website generator itself had no test**, a gap this
+     session created earlier the same day. Added
+     `scripts/test_generate_website.py` (stdlib `unittest`, no new
+     dependency) with both isolated unit tests (the exact
+     off-by-one-newline bug from the prior entry, written as a
+     regression test) and an integration test that fails if
+     `website/` and `website-src/` ever drift apart. Wired into CI.
+- **How we validated it:** Every claim above is backed by a command
+  actually run this session — the assertion/runtime-assertion counts
+  came from `grep` over the real source plus the PICT row counts in
+  `pict/generated/`, not estimation; SpotBugs' 33 findings are from
+  a real `./mvnw -Pspotbugs verify` run, not a guess at what a
+  linter would probably say; the new Python tests were run
+  (`python3 -m unittest ... -v`) and shown passing before being
+  called done. Full `./mvnw verify` stayed green throughout.
+- **Mistakes / corrections:** None found in this pass — the three
+  gaps were things that were never done, not things done wrong.

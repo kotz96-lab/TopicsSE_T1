@@ -26,6 +26,7 @@
         <pit.version>1.17.0</pit.version>
         <pit.junit5.version>1.2.1</pit.junit5.version>
         <surefire.version>3.5.2</surefire.version>
+        <spotbugs.version>4.10.4.0</spotbugs.version>
 
         <!--
             Classes PIT will mutate. We only want BRICS classes mutated,
@@ -113,6 +114,40 @@
                             <targetTests>
                                 <param>${pit.targetTests}</param>
                             </targetTests>
+                            <!--
+                                dk.brics.automaton.Datatypes.buildAll() is build-time-only
+                                code: invoked only from main(), it constructs every
+                                predefined automaton (XML/XSD types, Unicode blocks and
+                                categories) from a companion resource (src/Unicode.txt)
+                                that BRICS does not vendor and this repo does not ship.
+                                buildAll() and main() are therefore genuinely unreachable
+                                here, as are five private helpers buildAll() alone calls
+                                (makeCodePoint, buildMap, putWith, putFrom, put). PIT
+                                still generates mutants inside them and reports them as
+                                "no coverage", which deflates the mutation score with
+                                mutants no test suite in this repo could ever kill.
+
+                                PIT's excludedMethods filter matches by method name only
+                                (no class qualifier — see PIT's
+                                GregorEngineFactory#stringToMethodInfoPredicate, which
+                                matches purely on MethodInfo.getName()), so Datatypes'
+                                private load()/store() are deliberately NOT excluded
+                                here: those names collide with real, tested methods on
+                                Automaton, RunAutomaton, and MatchOnlyRunAutomaton, and
+                                excluding them would wrongly drop mutation coverage on
+                                reachable code. The residual "no coverage" mutants from
+                                Datatypes.load()/store()/get() are small and are
+                                discussed in docs/mutation-analysis.md instead.
+                            -->
+                            <excludedMethods>
+                                <param>buildAll</param>
+                                <param>main</param>
+                                <param>makeCodePoint</param>
+                                <param>buildMap</param>
+                                <param>putWith</param>
+                                <param>putFrom</param>
+                                <param>put</param>
+                            </excludedMethods>
                             <outputFormats>
                                 <param>HTML</param>
                                 <param>XML</param>
@@ -125,6 +160,41 @@
                                 <id>pit-mutation</id>
                                 <phase>test</phase>
                                 <goals><goal>mutationCoverage</goal></goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <!--
+            Activate with: ./mvnw -Pspotbugs verify
+            Generates a static-analysis HTML report under
+            target/spotbugs.html (assignment §12/§16 — "static-analysis
+            reports"). Scoped to the vendored BRICS classes only, same
+            as PIT, so findings are about the library under evaluation
+            rather than our own test harness.
+        -->
+        <profile>
+            <id>spotbugs</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>com.github.spotbugs</groupId>
+                        <artifactId>spotbugs-maven-plugin</artifactId>
+                        <version>${spotbugs.version}</version>
+                        <configuration>
+                            <includeFilterFile>spotbugs-include.xml</includeFilterFile>
+                            <effort>Max</effort>
+                            <threshold>Low</threshold>
+                            <htmlOutput>true</htmlOutput>
+                            <outputDirectory>${project.build.directory}</outputDirectory>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>spotbugs-check</id>
+                                <phase>verify</phase>
+                                <goals><goal>spotbugs</goal></goals>
                             </execution>
                         </executions>
                     </plugin>

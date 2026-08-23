@@ -23,9 +23,9 @@ effort estimate.
 | **12** | SOLID + refactoring proposals | 10 | 🟡 | 3 refactoring proposals drafted + full SOLID-per-principle narrative in [`docs/solid-analysis.md`](docs/solid-analysis.md); **Partner B to review** |
 | **13** | Infrastructure validation | 3 | ✅ | [`RegexRowBuilderInfraTest`](src/test/java/se/topics/t1/infra/RegexRowBuilderInfraTest.java) with 12 methods + 186 parameterized invocations |
 | **14** | Automation | *(integrated)* | ✅ | mvnw verify + `-Ppit` + generate-pict scripted |
-| **15** | HTML website | 5 | ⬜ | Week 4 wrap-up. Content exists in docs; assembly + styling ~4–6 hrs |
+| **15** | HTML website | 5 | ✅ | All 9 required sections built under `website/` |
 | **16** | Reproducibility artifact | 5 | ✅ | CSVs committed + seed pinned + README artifact-checklist appended |
-| **17** | Video (5–10 min) | 5 | ⬜ | Week 4. B narrates. Needs slides + screenshots + voiceover, ~3–4 hrs |
+| **17** | Video (5–10 min) | 5 | 🟡 | Slides (`slides/index.html`) + full narration script (`docs/video-script.md`) ready; **actual screen recording still needs to happen** — see `slides/README.md` |
 | **21** | Threats to validity + AI-tools writeup | 2 | ✅ | AI_TOOLS.md complete; [`docs/threats-to-validity.md`](docs/threats-to-validity.md) written |
 
 ---
@@ -80,34 +80,43 @@ drafted the scaffolding).
 Nothing on Person A's plate is blocked. Person B's items are all
 independent and can start as soon as they're onboarded.
 
-## What's actually left (short list)
+## What's actually left (short list) — updated 2026-08-23
 
-1. **Get Partner B onboarded** — the schedule risk, not a code risk.
-2. **B reviews:** metamorphic properties, differential tests, SOLID + refactoring proposals.
-3. **Week 4:** HTML website and video.
+This section described the Week-3 state; the project is now much
+further along. What's genuinely left:
 
-Everything else (§6, §7, §8, §9, §13, §14, §16, §21) is done end-to-end.
+1. **Record the video** — slides and script are ready
+   (`slides/index.html`, `docs/video-script.md`); the screen
+   recording itself hasn't happened yet.
+2. Final read-through of the website content against the numbers in
+   this pass (PIT exclusion changed the mutation score — see
+   [`docs/mutation-analysis.md`](docs/mutation-analysis.md)).
 
----
-
-## The single most important thing
-
-**Get Partner B onboarded.** Their absence is the schedule risk, not
-any code. Once B has cloned the repo and read
-[`docs/STATUS.md`](docs/STATUS.md) + [`docs/week2-baseline.md`](docs/week2-baseline.md),
-about 2 weeks of parallel work finishes everything.
+Everything else (§6, §7, §8, §9, §10, §11, §12, §13, §14, §15, §16,
+§21) is done end-to-end.
 
 ---
 
-## Numbers we already have (after Week-3 additions)
+## Numbers we already have (superseded — see below for the current run)
+
+*This subsection is the Week-3 snapshot, kept for history. For the
+live numbers from this pass (2026-08-23, JDK 21, after the PIT
+exclusion fix), see [`docs/STATUS.md`](docs/STATUS.md#current-state-as-of-2026-08-23--this-pass)
+and [`docs/mutation-analysis.md`](docs/mutation-analysis.md).*
 
 - **1191 tests**, all passing on vendored BRICS commit `582d8f3`.
+  (Current: **1948 tests** — grew as PICT/metamorphic coverage was
+  finalized.)
 - **77.2%** line coverage / **70.6%** branch / **78.8%** method on
-  `dk.brics.automaton.*` (JaCoCo).
+  `dk.brics.automaton.*` (JaCoCo). (Current: **78% line / 70% branch
+  / 79% method** — essentially unchanged.)
 - **51%** mutation score with the full suite. **Confirmed: 2-wise
   alone (34 tests) hits 50.7%; 3-wise (152 tests) 50.8%; 4-wise
   (568 tests) 50.4% — flat curve across interaction strengths, which
   is the empirical answer to RQ2** (see [`docs/pict-strength-comparison.md`](docs/pict-strength-comparison.md)).
+  (Current baseline: **52%** with 2031 mutations before the
+  `Datatypes` exclusion fix; see `mutation-analysis.md` for the
+  post-fix number.)
 - PICT tables at 2/3/4-wise: **34 / 152 / 568** rows (99.7% / 98.8% /
   95.6% smaller than the full 12,960-combination cross-product).
 - **3 refactoring proposals** in [`docs/refactoring-proposals.md`](docs/refactoring-proposals.md).

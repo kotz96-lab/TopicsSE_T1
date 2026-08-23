@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Scopes the -Pspotbugs profile to the vendored BRICS package only,
+    same rationale as PIT's targetClasses in pom.xml: findings should
+    be about the library under evaluation (assignment §12), not our
+    own test harness under se.topics.t1.*.
+-->
+<FindBugsFilter>
+    <Match>
+        <Package name="dk.brics.automaton"/>
+    </Match>
+</FindBugsFilter>

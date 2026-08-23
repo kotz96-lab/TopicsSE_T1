@@ -123,6 +123,31 @@ class RegexRowBuilderInfraTest {
     }
 
     @Nested
+    @DisplayName("single_char + range/negated falls back to the singleton atom")
+    class SingleCharFallback {
+
+        // The PICT model (pict/models/regex.pict) constrains single_char
+        // to only pair with CharClassKind {single, set} — but build() does
+        // not enforce that constraint itself, so this fallback branch in
+        // RegexRowBuilder.atom() is reachable from Java even though no
+        // currently-generated PICT row exercises it. Untested until now.
+
+        @Test
+        @DisplayName("single_char + range falls back to the bare 'x' atom instead of throwing")
+        void rangeFallsBackToBareChar() {
+            var r = RegexRowBuilder.build("single_char", "range", "none", 0, 0, "toAutomaton", "empty");
+            assertEquals("x", r.regex());
+        }
+
+        @Test
+        @DisplayName("single_char + negated falls back to the bare 'x' atom instead of throwing")
+        void negatedFallsBackToBareChar() {
+            var r = RegexRowBuilder.build("single_char", "negated", "none", 0, 0, "toAutomaton", "empty");
+            assertEquals("x", r.regex());
+        }
+    }
+
+    @Nested
     @DisplayName("Row builder rejects unknown enum tokens")
     class BadInput {
 
