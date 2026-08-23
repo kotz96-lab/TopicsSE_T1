@@ -120,6 +120,114 @@
     </p>
 </div>
 
+<h2>Suite metrics: assertions and execution time</h2>
+
+<table>
+    <tr><th>Metric</th><th>Value</th></tr>
+    <tr><td>Test methods (source-level)</td><td>~90 hand-written, plus parameterized methods fed by CSV rows</td></tr>
+    <tr><td>Test invocations (what JUnit actually runs)</td><td><span class="metric big">1950</span></td></tr>
+    <tr><td>Assertion call-sites in source</td><td><span class="metric">558</span></td></tr>
+    <tr><td>Assertion <em>evaluations</em> at runtime</td><td>20,000+ (see below)</td></tr>
+    <tr><td>Test execution time (`./mvnw verify`, JUnit5 phase only)</td><td>~3&nbsp;s</td></tr>
+    <tr><td>Full build (compile + test + JaCoCo report)</td><td>~5&nbsp;s</td></tr>
+</table>
+
+<p class="small">
+    558 source-level assertion statements understates the real number
+    of checks performed, because several of them run inside a loop
+    over parameterized rows or sampled inputs rather than once. The
+    clearest example: <code>PictMetamorphicTest</code> has 5 assertion
+    statements in its source, but each runs once per property (5) per
+    sampled input (5) per PICT row (754 across 2/3/4-wise) &mdash;
+    <strong>18,850 runtime assertion evaluations from 5 lines of
+    source</strong> (see <a href="metamorphic.html">Metamorphic
+    Testing</a>). Adding <code>PictRegexTest</code>'s ~1,500 and the
+    infra suite's CSV-driven invocations, the full suite evaluates
+    well over 20,000 assertions despite having under 600 assertion
+    statements in source. Both numbers are worth reporting: source
+    count reflects how much test logic a human has to read and
+    maintain; runtime count reflects how much of BRICS' behaviour
+    actually gets checked on every run.
+</p>
+
+<p class="small">
+    Both timings are fast (single-digit seconds) because BRICS'
+    automata operations are pure, in-memory, and small at the sizes
+    our regexes generate &mdash; there's no I/O, no network, no
+    sleeps. That headroom is what makes the 6 separate per-strength
+    PIT runs on the <a href="cit.html">CIT page</a> practical to run
+    repeatedly during development.
+</p>
+
+<h2>Readability, debugging, and redundancy</h2>
+
+<p>
+    <strong>Readability.</strong> Every hand-written test class uses
+    <code>@Nested</code> to group related cases and
+    <code>@DisplayName</code> on both the nested class and the
+    method, so a failure report reads as a sentence (e.g.
+    "Resource lookup &gt; exists throws NPE for missing resources
+    (BRICS bug &mdash; should return false)") rather than a bare
+    method name. The PICT-driven and infra tests go further: each
+    <code>@ParameterizedTest</code> name template embeds the row's
+    actual parameter values
+    (<code>"2-wise[{index}] {0}/{1}/{2}/{3}/{4}/{5}/{6}"</code> in
+    <code>PictRegexTest</code>), so a failing row is identifiable
+    from the test name alone, before opening a stack trace.
+</p>
+
+<p>
+    <strong>Ease of debugging failures.</strong> Every assertion in
+    the PICT and metamorphic suites carries a lazy failure-message
+    supplier that reconstructs the exact regex, operation, and input
+    that failed (e.g. <code>"Row failed to compile: " + row.regex()</code>
+    in <code>PictRegexTest</code>, or
+    <code>"MR-A double-complement mismatch: regex=" + row.regex() + " input=" + describe(s)</code>
+    in <code>PictMetamorphicTest</code>). Because
+    <code>RegexRowBuilder.build()</code> is a pure, deterministic
+    function of its row inputs, any failure is reproducible by
+    re-running that one parameterized invocation in an IDE &mdash;
+    no need to re-run the whole suite or guess at hidden state.
+</p>
+
+<p>
+    <strong>Redundancy.</strong> The PICT-driven suites are the
+    honest exception here, and we say so rather than hide it: many
+    of the 754 rows differ in only one parameter, so they exercise
+    overlapping code paths. That's the mechanism behind the flat
+    mutation-score curve documented on the <a href="cit.html">CIT
+    page</a> &mdash; 3-wise (152 rows) already catches almost
+    everything 4-wise (568 rows, 3.7&times; the rows) catches, which
+    is direct evidence that a large share of the 4-wise rows are
+    redundant for fault-detection purposes even though PICT
+    guarantees no two rows are redundant for <em>coverage</em>
+    purposes (every quadruple of parameter values is still covered
+    exactly once). Coverage-redundancy and fault-detection-redundancy
+    are different things, and CIT only optimizes the former.
+    <code>RegexRowBuilder.alternated()</code> also deliberately
+    reuses the same term for every alternation branch (see its source
+    comment) &mdash; a further source of redundant-looking rows that
+    is in fact intentional, to exercise BRICS' union-of-equal-branches
+    minimization path specifically.
+</p>
+
+<h2>Flaky behavior</h2>
+
+<p>
+    None observed. The suite has no <code>Thread.sleep</code>,
+    unseeded <code>Random</code>, wall-clock reads, or network/file
+    I/O in its test code &mdash; every input is either hand-written,
+    derived deterministically from a PICT CSV row via
+    <code>RegexRowBuilder</code> (see
+    <a href="https://github.com/kotz96-lab/TopicsSE_T1/blob/main/src/test/java/se/topics/t1/infra/RegexRowBuilderInfraTest.java">RegexRowBuilderInfraTest</a>'s
+    determinism check), or a fixed literal. All 1950 tests passed on
+    every one of the repeated local runs performed while preparing
+    this report. The one source of non-determinism in this project
+    is PIT's own mutant-timeout classification during mutation
+    testing, not the JUnit5 suite itself &mdash; see I-3 in
+    <a href="threats.html">Threats to Validity</a>.
+</p>
+
 <h2>Bugs found while writing tests (not by mutation testing)</h2>
 
 <p>
