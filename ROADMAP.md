@@ -18,9 +18,9 @@ effort estimate.
 | **7**  | Suite evaluation | *(part of §6)* | ✅ | write-up in website |
 | **8**  | Mutation testing + 5-mutant analysis | 15 | ✅ | full analysis in [`docs/mutation-analysis.md`](docs/mutation-analysis.md) |
 | **9**  | PICT + interaction-strength eval | 25 | ✅ | model + tests + per-strength comparison + rationale — see [`docs/pict-strength-comparison.md`](docs/pict-strength-comparison.md) |
-| **10** | Metamorphic tests (≥10) | 15 | 🟡 | 15 draft properties landed; **Partner B to review, extend, or restructure** |
-| **11** | Differential vs `java.util.regex` | 5 | 🟡 | draft landed with 38 compatible cases + known-disagreements; **Partner B to review, extend** |
-| **12** | SOLID + refactoring proposals | 10 | 🟡 | 3 refactoring proposals drafted + full SOLID-per-principle narrative in [`docs/solid-analysis.md`](docs/solid-analysis.md); **Partner B to review** |
+| **10** | Metamorphic tests (≥10) | 15 | ✅ | 18 properties in [`MetamorphicPropertiesTest.java`](src/test/java/se/topics/t1/metamorphic/MetamorphicPropertiesTest.java), all passing — see [`website/metamorphic.html`](website/metamorphic.html) |
+| **11** | Differential vs `java.util.regex` | 5 | ✅ | 38 compatible cases + known-disagreements — see [`website/differential.html`](website/differential.html) |
+| **12** | SOLID + refactoring proposals | 10 | ✅ | 4 refactoring proposals in [`docs/refactoring-proposals.md`](docs/refactoring-proposals.md) + full SOLID-per-principle narrative in [`docs/solid-analysis.md`](docs/solid-analysis.md) |
 | **13** | Infrastructure validation | 3 | ✅ | [`RegexRowBuilderInfraTest`](src/test/java/se/topics/t1/infra/RegexRowBuilderInfraTest.java) with 12 methods + 186 parameterized invocations |
 | **14** | Automation | *(integrated)* | ✅ | mvnw verify + `-Ppit` + generate-pict scripted |
 | **15** | HTML website | 5 | ✅ | All 9 required sections built under `website/` |

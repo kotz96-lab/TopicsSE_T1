@@ -287,12 +287,12 @@
 <!-- ============================================================ -->
 <section class="slide">
     <h2>Mutation testing with PIT</h2>
-    <p>PIT injects 2,087 small mutations into BRICS and reruns our suite against each.</p>
+    <p>PIT injects 1,862 small mutations into BRICS and reruns our suite against each.</p>
     <div class="two-col" style="margin-top: 2rem;">
         <div>
             <div class="big-number">
-                51%
-                <span class="label">mutation score (1074 / 2087)</span>
+                57%
+                <span class="label">mutation score (1058 / 1862)</span>
             </div>
         </div>
         <div>
@@ -336,10 +336,10 @@
         <tr>
             <td>+ metamorphic + differential + strong PICT</td>
             <td class="right">1948</td>
-            <td class="right"><strong style="color: var(--accent);">52.3%</strong></td>
+            <td class="right"><strong style="color: var(--accent);">57%</strong></td>
         </tr>
     </table>
-    <p class="small-note" style="margin-top: 1rem;">Detection rate = (killed + timed-out) / total mutations. Hand tests do the heavy lifting; extra test flavors add only ~1 percentage point because they exercise the same BRICS operations. A mutant that could be caught by both a hand test and a metamorphic test only counts once.</p>
+    <p class="small-note" style="margin-top: 1rem;">Detection rate = (killed + timed-out) / total mutations. Hand tests do the heavy lifting; extra test flavors move the rate only a little on their own. The final row also reflects a PIT scope fix (excluding <code>Datatypes</code>' unreachable build-time code), so its total-mutation denominator isn't directly comparable to the earlier rows. A mutant that could be caught by both a hand test and a metamorphic test only counts once.</p>
     <span class="slide-num">6 / 17</span>
 </section>
 
