@@ -33,3 +33,7 @@ target/pit-reports/
 # generated CSVs under pict/generated/ are committed so tests don't
 # require PICT to be installed for anyone running mvnw verify.
 tools/
+
+# Python bytecode cache (scripts/generate_website.py, scripts/test_generate_website.py)
+__pycache__/
+*.pyc
