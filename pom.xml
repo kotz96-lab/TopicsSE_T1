@@ -26,6 +26,7 @@
         <pit.version>1.17.0</pit.version>
         <pit.junit5.version>1.2.1</pit.junit5.version>
         <surefire.version>3.5.2</surefire.version>
+        <spotbugs.version>4.10.4.0</spotbugs.version>
 
         <!--
             Classes PIT will mutate. We only want BRICS classes mutated,
@@ -159,6 +160,41 @@
                                 <id>pit-mutation</id>
                                 <phase>test</phase>
                                 <goals><goal>mutationCoverage</goal></goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <!--
+            Activate with: ./mvnw -Pspotbugs verify
+            Generates a static-analysis HTML report under
+            target/spotbugs.html (assignment §12/§16 — "static-analysis
+            reports"). Scoped to the vendored BRICS classes only, same
+            as PIT, so findings are about the library under evaluation
+            rather than our own test harness.
+        -->
+        <profile>
+            <id>spotbugs</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>com.github.spotbugs</groupId>
+                        <artifactId>spotbugs-maven-plugin</artifactId>
+                        <version>${spotbugs.version}</version>
+                        <configuration>
+                            <includeFilterFile>spotbugs-include.xml</includeFilterFile>
+                            <effort>Max</effort>
+                            <threshold>Low</threshold>
+                            <htmlOutput>true</htmlOutput>
+                            <outputDirectory>${project.build.directory}</outputDirectory>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>spotbugs-check</id>
+                                <phase>verify</phase>
+                                <goals><goal>spotbugs</goal></goals>
                             </execution>
                         </executions>
                     </plugin>

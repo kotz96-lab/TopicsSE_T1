@@ -102,6 +102,7 @@ with:
 ```pwsh
 python3 scripts/generate_website.py          # writes website/*.html
 python3 scripts/generate_website.py --check  # exits 1 if website/ is stale, doesn't write
+python3 -m unittest scripts.test_generate_website -v  # tests for the generator itself (§13)
 ```
 
 Edit page content under `website-src/pages/<slug>.html`, not
@@ -145,6 +146,7 @@ either the file or the command that produces it.
 | Generated combinatorial tests   | [`src/test/java/se/topics/t1/pict/`](src/test/java/se/topics/t1/pict/) | `./mvnw verify`                                                  |
 | PIT mutation reports            | `target/pit-reports/index.html`                                       | `./mvnw -Ppit test`                                              |
 | Coverage reports (JaCoCo)       | `target/site/jacoco/index.html`                                       | `./mvnw verify`                                                  |
+| Static-analysis reports         | [`docs/static-analysis.md`](docs/static-analysis.md), `target/spotbugs.html` | `./mvnw -Pspotbugs verify`                                       |
 | Software-design analysis        | [`docs/refactoring-proposals.md`](docs/refactoring-proposals.md), [`stuff_for_report.md`](stuff_for_report.md) | authored — see also [`docs/mutation-analysis.md`](docs/mutation-analysis.md) |
 | SOLID evaluation notes          | [`docs/solid-analysis.md`](docs/solid-analysis.md)                    | authored                                                         |
 | Refactoring proposals (≥3)      | [`docs/refactoring-proposals.md`](docs/refactoring-proposals.md)      | authored                                                         |

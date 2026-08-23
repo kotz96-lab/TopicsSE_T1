@@ -89,6 +89,51 @@ on a <code>Kind</code> enum. Not full Visitor (no <code>accept</code>
 method), but same intent: separate parse-tree structure from
 transformation. Suffers the classic switch-over-type-tag OCP issue.</p>
 
+<h2>Static analysis (SpotBugs)</h2>
+
+<p>
+    We ran <a href="https://spotbugs.github.io/">SpotBugs</a> 4.10.4.0
+    at Max effort against the vendored <code>dk.brics.automaton.*</code>
+    classes (<code>./mvnw -Pspotbugs verify</code>) as a mechanical
+    cross-check on the manual analysis above. <strong>33 findings</strong>
+    across 26 classes &mdash; none priority-1 correctness bugs, but a
+    useful corroboration signal.
+</p>
+
+<table>
+    <tr><th>Category</th><th>Count</th></tr>
+    <tr><td>Mutable-state exposure (<code>EI_EXPOSE_REP*</code>)</td><td>12</td></tr>
+    <tr><td>Bad practice</td><td>13</td></tr>
+    <tr><td>Style</td><td>5</td></tr>
+    <tr><td>Correctness / experimental / security</td><td>3</td></tr>
+</table>
+
+<p>
+    The single largest cluster &mdash; 12 <code>EI_EXPOSE_REP</code>/
+    <code>EI_EXPOSE_REP2</code> findings, e.g.
+    <code>Automaton.getInitialState()</code> returning the live
+    <code>initial</code> field with no defensive copy &mdash; is an
+    independent, tool-driven confirmation of the SRP/encapsulation gap
+    already identified above by hand: <code>Automaton</code>'s internal
+    graph is reachable and mutable from outside callers. SpotBugs also
+    independently flagged
+    <code>MC_OVERRIDABLE_METHOD_CALL_IN_CONSTRUCTOR</code> in
+    <code>RunAutomaton</code> (a constructor calling an overridable
+    method &mdash; the textbook LSP pitfall) and
+    <code>ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD</code> in
+    <code>Automaton.isDebug()</code>, corroborating the "global mutable
+    static flags" observation from the SOLID section. One genuinely new
+    finding not caught by our manual review or tests:
+    <code>StringUnionOperations.State.equals(Object)</code> doesn't
+    null-check its argument, violating the <code>Object.equals</code>
+    contract &mdash; but that class is package-private and unreachable
+    from our public-API test surface, which is itself a data point for
+    <a href="threats.html">Threats to Validity</a>. Full findings,
+    per-bug discussion, and what we deliberately didn't run (Checkstyle,
+    SonarQube) in
+    <a href="https://github.com/kotz96-lab/TopicsSE_T1/blob/main/docs/static-analysis.md">docs/static-analysis.md</a>.
+</p>
+
 <h2>Refactoring proposals</h2>
 
 <h3 id="proposal-1">Proposal 1 &mdash; Fix <code>Datatypes.exists()</code> to actually return <code>false</code></h3>

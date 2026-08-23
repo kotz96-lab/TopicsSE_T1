@@ -73,6 +73,7 @@ location of each and how to regenerate.</p>
     <tr><td>PIT reports</td>                        <td><code>target/pit-reports/index.html</code></td>                             <td><code>./mvnw -Ppit test</code></td></tr>
     <tr><td>Coverage reports</td>                   <td><code>target/site/jacoco/index.html</code></td>                             <td><code>./mvnw verify</code></td></tr>
     <tr><td>Software-design analysis</td>           <td><code>docs/solid-analysis.md</code></td>                                    <td>authored</td></tr>
+    <tr><td>Static-analysis report</td>              <td><code>docs/static-analysis.md</code>, <code>target/spotbugs.html</code></td> <td><code>./mvnw -Pspotbugs verify</code></td></tr>
     <tr><td>Refactoring proposals (&ge;3)</td>      <td><code>docs/refactoring-proposals.md</code> (4 proposals)</td>               <td>authored</td></tr>
     <tr><td>5-mutant analysis</td>                  <td><code>docs/mutation-analysis.md</code></td>                                 <td>authored</td></tr>
     <tr><td>PICT parameter rationale</td>           <td><code>docs/pict-rationale.md</code></td>                                    <td>authored</td></tr>
@@ -80,7 +81,7 @@ location of each and how to regenerate.</p>
     <tr><td>Threats to validity</td>                <td><code>docs/threats-to-validity.md</code></td>                               <td>authored</td></tr>
     <tr><td>AI-tool usage log</td>                  <td><code>docs/AI_TOOLS.md</code></td>                                          <td>appended per session</td></tr>
     <tr><td>README</td>                             <td><code>README.md</code></td>                                                 <td>committed</td></tr>
-    <tr><td>Website (this)</td>                     <td><code>website/</code></td>                                                  <td>static HTML in the repo</td></tr>
+    <tr><td>Website (this)</td>                     <td><code>website/</code>, sourced from <code>website-src/</code></td>          <td><code>python3 scripts/generate_website.py</code></td></tr>
     <tr><td>Scripts</td>                            <td><code>scripts/</code></td>                                                  <td>committed</td></tr>
 </table>
 
