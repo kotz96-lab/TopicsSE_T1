@@ -506,3 +506,49 @@ from this file.
   byte-diff against the backup, not by eyeballing the rendered
   page — cosmetic in a browser, but would have been a silent,
   permanent drift from the original had the diff not been run.
+
+### 2026-08-23 — Requirements gap analysis + closing the 3 gaps found
+
+- **Tool:** Claude Code (Sonnet 5).
+- **Who:** Itay.
+- **What we asked it to do:** Re-read the assignment PDF section by
+  section against the actual repo content (not the docs' own claims
+  about themselves) and report any genuine gap.
+- **What it produced:** Found three real gaps and closed all three:
+  1. **§7 test-suite quality discussion** — `junit.html` stated the
+     assignment requires "assertion count, execution time,
+     readability, flakiness" discussion but didn't actually contain
+     any of it. Added a real accounting: 558 assertion call-sites in
+     source vs. 20,000+ runtime assertion evaluations (parameterized
+     tests run the same assertion line many times — explained why
+     both numbers matter), measured execution time from an actual
+     `./mvnw verify` run, and a flakiness discussion grounded in a
+     grep for `Thread.sleep`/unseeded `Random`/wall-clock reads
+     across the whole test tree (none found).
+  2. **§16 "static-analysis reports"** — never run. Added SpotBugs
+     4.10.4.0 as an opt-in `-Pspotbugs` Maven profile scoped to
+     `dk.brics.automaton.*` only (`spotbugs-include.xml`, same
+     rationale as PIT's `targetClasses`). Ran it for real: 33
+     findings, written up in `docs/static-analysis.md` with the
+     ones that corroborate or extend the existing manual SOLID
+     analysis (mutable-state exposure, an overridable-method-in-
+     constructor LSP violation, a genuinely new `equals()`
+     null-handling bug in a package-private class our public-API
+     tests can't reach).
+  3. **§13 — the website generator itself had no test**, a gap this
+     session created earlier the same day. Added
+     `scripts/test_generate_website.py` (stdlib `unittest`, no new
+     dependency) with both isolated unit tests (the exact
+     off-by-one-newline bug from the prior entry, written as a
+     regression test) and an integration test that fails if
+     `website/` and `website-src/` ever drift apart. Wired into CI.
+- **How we validated it:** Every claim above is backed by a command
+  actually run this session — the assertion/runtime-assertion counts
+  came from `grep` over the real source plus the PICT row counts in
+  `pict/generated/`, not estimation; SpotBugs' 33 findings are from
+  a real `./mvnw -Pspotbugs verify` run, not a guess at what a
+  linter would probably say; the new Python tests were run
+  (`python3 -m unittest ... -v`) and shown passing before being
+  called done. Full `./mvnw verify` stayed green throughout.
+- **Mistakes / corrections:** None found in this pass — the three
+  gaps were things that were never done, not things done wrong.
